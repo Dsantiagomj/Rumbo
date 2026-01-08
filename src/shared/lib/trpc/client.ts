@@ -1,0 +1,7 @@
+/**
+ * tRPC client for use in Client Components
+ */
+import { createTRPCReact } from '@trpc/react-query';
+import type { AppRouter } from './root';
+
+export const trpc = createTRPCReact<AppRouter>();

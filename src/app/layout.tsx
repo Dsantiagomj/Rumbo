@@ -1,5 +1,6 @@
 import type { Metadata } from 'next';
 import './globals.css';
+import { TRPCProvider } from '@/shared/providers/trpc-provider';
 
 export const metadata: Metadata = {
   title: 'Rumbo - Tu Asistente Financiero Personal',
@@ -13,7 +14,9 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="es-CO">
-      <body>{children}</body>
+      <body>
+        <TRPCProvider>{children}</TRPCProvider>
+      </body>
     </html>
   );
 }
