@@ -248,7 +248,9 @@ export function ProfileForm() {
 
         {/* Success message */}
         {successMessage && (
-          <div className="rounded-md bg-green-50 p-3 text-sm text-green-800">{successMessage}</div>
+          <div className="bg-financial-positive/10 text-financial-positive rounded-md p-3 text-sm">
+            {successMessage}
+          </div>
         )}
 
         {/* Error message */}
@@ -259,7 +261,7 @@ export function ProfileForm() {
         )}
 
         {/* Submit button */}
-        <Button type="submit" disabled={isLoading}>
+        <Button type="submit" variant="brand" disabled={isLoading}>
           {isLoading ? 'Guardando...' : 'Guardar cambios'}
         </Button>
       </form>

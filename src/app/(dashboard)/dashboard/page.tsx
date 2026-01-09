@@ -1,9 +1,9 @@
 import { Metadata } from 'next';
-import Link from 'next/link';
 import { redirect } from 'next/navigation';
 
 import { auth } from '@/shared/lib/auth';
-import { Button } from '@/shared/components/ui/button';
+import { QuickActionCard } from '@/shared/components/rumbo';
+import { Settings, Plus, MessageSquare } from 'lucide-react';
 
 export const metadata: Metadata = {
   title: 'Dashboard | Rumbo',
@@ -32,24 +32,26 @@ export default async function DashboardPage() {
         <div className="bg-card rounded-lg border p-6">
           <h2 className="mb-4 text-xl font-semibold">Acciones rápidas</h2>
           <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-            <Button asChild variant="outline" className="h-24">
-              <Link href="/settings/profile">
-                <div className="text-center">
-                  <div className="mb-2 text-2xl">⚙️</div>
-                  <div className="font-medium">Configurar perfil</div>
-                </div>
-              </Link>
-            </Button>
+            <QuickActionCard
+              icon={Settings}
+              label="Configurar perfil"
+              onClick={() => (window.location.href = '/settings/profile')}
+              variant="primary"
+            />
 
-            <div className="flex h-24 items-center justify-center rounded-md border-2 border-dashed">
-              <span className="text-muted-foreground text-sm">
-                Próximamente: Agregar transacción
-              </span>
-            </div>
+            <QuickActionCard
+              icon={Plus}
+              label="Agregar transacción"
+              variant="default"
+              className="cursor-not-allowed opacity-50"
+            />
 
-            <div className="flex h-24 items-center justify-center rounded-md border-2 border-dashed">
-              <span className="text-muted-foreground text-sm">Próximamente: Chat con AI</span>
-            </div>
+            <QuickActionCard
+              icon={MessageSquare}
+              label="Chat con AI"
+              variant="default"
+              className="cursor-not-allowed opacity-50"
+            />
           </div>
         </div>
 

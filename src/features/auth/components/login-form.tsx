@@ -117,7 +117,7 @@ export function LoginForm() {
         )}
 
         {/* Submit button */}
-        <Button type="submit" className="w-full" disabled={isLoading}>
+        <Button type="submit" variant="brand" className="w-full" disabled={isLoading}>
           {isLoading ? 'Iniciando sesión...' : 'Iniciar sesión'}
         </Button>
       </form>

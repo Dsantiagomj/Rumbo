@@ -247,7 +247,7 @@ export function RegisterForm() {
         )}
 
         {/* Submit button */}
-        <Button type="submit" className="w-full" disabled={isLoading}>
+        <Button type="submit" variant="brand" className="w-full" disabled={isLoading}>
           {isLoading ? 'Creando cuenta...' : 'Crear cuenta'}
         </Button>
       </form>

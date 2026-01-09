@@ -29,7 +29,10 @@ export default async function LoginPage() {
 
         <p className="text-muted-foreground px-8 text-center text-sm">
           ¿No tienes cuenta?{' '}
-          <Link href="/register" className="hover:text-brand underline underline-offset-4">
+          <Link
+            href="/register"
+            className="text-brand-primary-500 hover:text-brand-primary-600 underline underline-offset-4"
+          >
             Regístrate gratis
           </Link>
         </p>

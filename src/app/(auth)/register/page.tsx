@@ -31,7 +31,10 @@ export default async function RegisterPage() {
 
         <p className="text-muted-foreground px-8 text-center text-sm">
           ¿Ya tienes cuenta?{' '}
-          <Link href="/login" className="hover:text-brand underline underline-offset-4">
+          <Link
+            href="/login"
+            className="text-brand-primary-500 hover:text-brand-primary-600 underline underline-offset-4"
+          >
             Inicia sesión
           </Link>
         </p>
