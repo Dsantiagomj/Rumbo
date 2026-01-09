@@ -1,3 +1,5 @@
+'use client';
+
 /**
  * TransactionCard Component
  * Displays transaction information with actions

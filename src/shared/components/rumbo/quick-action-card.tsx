@@ -1,3 +1,5 @@
+'use client';
+
 /**
  * QuickActionCard Component
  * Tappable card for common actions
