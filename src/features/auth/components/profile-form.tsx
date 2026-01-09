@@ -40,6 +40,7 @@ export function ProfileForm() {
       currency: 'COP',
       language: 'es-CO',
       dateFormat: 'DD/MM/YYYY',
+      timezone: 'America/Bogota',
     },
   });
 
@@ -53,6 +54,7 @@ export function ProfileForm() {
         currency: profile.currency as 'COP' | 'USD' | 'EUR',
         language: profile.language as 'es-CO' | 'en-US',
         dateFormat: profile.dateFormat as 'DD/MM/YYYY' | 'MM/DD/YYYY',
+        timezone: profile.timezone,
       });
     }
   }, [profile, form]);
@@ -208,6 +210,37 @@ export function ProfileForm() {
                   <SelectItem value="MM/DD/YYYY">MM/DD/YYYY (mes/día/año)</SelectItem>
                 </SelectContent>
               </Select>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+
+        {/* Timezone */}
+        <FormField
+          control={form.control}
+          name="timezone"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>Zona horaria</FormLabel>
+              <Select
+                onValueChange={field.onChange}
+                defaultValue={field.value}
+                disabled={isLoading}
+              >
+                <FormControl>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Seleccioná tu zona horaria" />
+                  </SelectTrigger>
+                </FormControl>
+                <SelectContent>
+                  <SelectItem value="America/Bogota">Colombia (UTC-5)</SelectItem>
+                  <SelectItem value="America/New_York">Nueva York (UTC-5/UTC-4)</SelectItem>
+                  <SelectItem value="America/Los_Angeles">Los Ángeles (UTC-8/UTC-7)</SelectItem>
+                  <SelectItem value="Europe/Madrid">Madrid (UTC+1/UTC+2)</SelectItem>
+                  <SelectItem value="America/Mexico_City">Ciudad de México (UTC-6)</SelectItem>
+                </SelectContent>
+              </Select>
+              <FormDescription>Usada para mostrar fechas y recordatorios</FormDescription>
               <FormMessage />
             </FormItem>
           )}
