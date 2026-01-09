@@ -42,7 +42,7 @@ export function QuickActionCard({
       className={cn(
         'flex flex-col items-center justify-center gap-2 rounded-lg border p-4 text-center transition-colors',
         'min-h-[80px] pointer-coarse:min-h-[96px]',
-        'hover:bg-accent hover:text-accent-foreground',
+        'hover:bg-accent hover:text-accent-foreground cursor-pointer',
         'focus-visible:ring-ring focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:outline-none',
         variant === 'primary' &&
           'border-brand-primary-500 bg-brand-primary-500/5 hover:bg-brand-primary-500/10',
