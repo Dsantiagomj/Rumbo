@@ -1,0 +1,100 @@
+{
+  "auth": {
+    "register": {
+      "title": "Crea tu cuenta",
+      "subtitle": "Completa tus datos para empezar a usar Rumbo",
+      "fields": {
+        "name": "Nombre completo",
+        "preferredName": "¿Cómo quieres que te llame?",
+        "preferredNameDescription": "La IA usará este nombre cuando chatees con ella",
+        "dateOfBirth": "Fecha de nacimiento",
+        "dateOfBirthDescription": "Usamos esto para personalizar tu experiencia",
+        "dateOfBirthPlaceholder": "Selecciona tu fecha de nacimiento",
+        "email": "Email",
+        "password": "Contraseña",
+        "passwordDescription": "Mínimo 8 caracteres, con mayúscula, minúscula y número",
+        "confirmPassword": "Confirmar contraseña"
+      },
+      "buttons": {
+        "submit": "Crear cuenta",
+        "submitting": "Creando cuenta..."
+      },
+      "footer": {
+        "hasAccount": "¿Ya tienes cuenta?",
+        "signIn": "Inicia sesión"
+      },
+      "errors": {
+        "generic": "Ocurrió un error al crear tu cuenta"
+      }
+    },
+    "login": {
+      "title": "Bienvenido de vuelta",
+      "subtitle": "Inicia sesión en tu cuenta",
+      "fields": {
+        "email": "Email",
+        "password": "Contraseña"
+      },
+      "buttons": {
+        "submit": "Iniciar sesión",
+        "submitting": "Iniciando sesión..."
+      },
+      "footer": {
+        "noAccount": "¿No tienes cuenta?",
+        "signUp": "Regístrate gratis"
+      },
+      "errors": {
+        "invalidCredentials": "Email o contraseña incorrectos",
+        "generic": "Ocurrió un error al iniciar sesión"
+      }
+    },
+    "validation": {
+      "email": {
+        "invalid": "Email inválido",
+        "required": "El email es requerido"
+      },
+      "password": {
+        "required": "La contraseña es requerida",
+        "minLength": "La contraseña debe tener mínimo 8 caracteres",
+        "uppercase": "La contraseña debe tener al menos una mayúscula",
+        "lowercase": "La contraseña debe tener al menos una minúscula",
+        "number": "La contraseña debe tener al menos un número"
+      },
+      "confirmPassword": {
+        "required": "Confirma tu contraseña",
+        "mismatch": "Las contraseñas no coinciden"
+      },
+      "name": {
+        "required": "El nombre completo es requerido"
+      },
+      "preferredName": {
+        "required": "Dinos cómo quieres que te llamemos",
+        "tooLong": "El nombre preferido es muy largo"
+      },
+      "dateOfBirth": {
+        "future": "La fecha de nacimiento no puede ser futura",
+        "invalid": "Fecha de nacimiento inválida",
+        "minAge": "Debes tener al menos 13 años para usar Rumbo"
+      }
+    }
+  },
+  "common": {
+    "calendar": {
+      "months": [
+        "Enero",
+        "Febrero",
+        "Marzo",
+        "Abril",
+        "Mayo",
+        "Junio",
+        "Julio",
+        "Agosto",
+        "Septiembre",
+        "Octubre",
+        "Noviembre",
+        "Diciembre"
+      ],
+      "weekdays": ["Dom", "Lun", "Mar", "Mié", "Jue", "Vie", "Sáb"],
+      "placeholder": "DD/MM/AAAA"
+    }
+  }
+}

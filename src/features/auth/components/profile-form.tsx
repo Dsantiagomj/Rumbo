@@ -1,0 +1,235 @@
+'use client';
+
+import { useEffect, useState } from 'react';
+import { useForm } from 'react-hook-form';
+import { zodResolver } from '@hookform/resolvers/zod';
+
+import { Button } from '@/shared/components/ui/button';
+import {
+  Form,
+  FormControl,
+  FormDescription,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+} from '@/shared/components/ui/form';
+import { Input } from '@/shared/components/ui/input';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/shared/components/ui/select';
+import { trpc } from '@/shared/lib/trpc/client';
+import { updateProfileSchema, type UpdateProfileInput } from '../utils/validation';
+
+export function ProfileForm() {
+  const [isLoading, setIsLoading] = useState(false);
+  const [successMessage, setSuccessMessage] = useState('');
+
+  const { data: profile, isLoading: isLoadingProfile } = trpc.auth.getProfile.useQuery();
+
+  const form = useForm<UpdateProfileInput>({
+    resolver: zodResolver(updateProfileSchema),
+    defaultValues: {
+      name: '',
+      preferredName: '',
+      email: '',
+      currency: 'COP',
+      language: 'es-CO',
+      dateFormat: 'DD/MM/YYYY',
+    },
+  });
+
+  // Load profile data into form
+  useEffect(() => {
+    if (profile) {
+      form.reset({
+        name: profile.name,
+        preferredName: profile.preferredName,
+        email: profile.email,
+        currency: profile.currency as 'COP' | 'USD' | 'EUR',
+        language: profile.language as 'es-CO' | 'en-US',
+        dateFormat: profile.dateFormat as 'DD/MM/YYYY' | 'MM/DD/YYYY',
+      });
+    }
+  }, [profile, form]);
+
+  const updateMutation = trpc.auth.updateProfile.useMutation({
+    onSuccess: (data) => {
+      setIsLoading(false);
+      setSuccessMessage(data.message);
+      setTimeout(() => setSuccessMessage(''), 3000);
+    },
+    onError: (error) => {
+      setIsLoading(false);
+      form.setError('root', {
+        message: error.message || 'Ocurrió un error al actualizar tu perfil',
+      });
+    },
+  });
+
+  const onSubmit = async (data: UpdateProfileInput) => {
+    setIsLoading(true);
+    setSuccessMessage('');
+    updateMutation.mutate(data);
+  };
+
+  if (isLoadingProfile) {
+    return <div>Cargando perfil...</div>;
+  }
+
+  return (
+    <Form {...form}>
+      <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
+        {/* Name */}
+        <FormField
+          control={form.control}
+          name="name"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>Nombre completo</FormLabel>
+              <FormControl>
+                <Input {...field} disabled={isLoading} />
+              </FormControl>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+
+        {/* Preferred Name */}
+        <FormField
+          control={form.control}
+          name="preferredName"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>¿Cómo querés que te llame?</FormLabel>
+              <FormControl>
+                <Input {...field} disabled={isLoading} />
+              </FormControl>
+              <FormDescription>La AI usará este nombre cuando chatees</FormDescription>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+
+        {/* Email */}
+        <FormField
+          control={form.control}
+          name="email"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>Email</FormLabel>
+              <FormControl>
+                <Input type="email" {...field} disabled={isLoading} />
+              </FormControl>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+
+        {/* Currency */}
+        <FormField
+          control={form.control}
+          name="currency"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>Moneda</FormLabel>
+              <Select
+                onValueChange={field.onChange}
+                defaultValue={field.value}
+                disabled={isLoading}
+              >
+                <FormControl>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Seleccioná tu moneda" />
+                  </SelectTrigger>
+                </FormControl>
+                <SelectContent>
+                  <SelectItem value="COP">COP (Peso Colombiano)</SelectItem>
+                  <SelectItem value="USD">USD (Dólar)</SelectItem>
+                  <SelectItem value="EUR">EUR (Euro)</SelectItem>
+                </SelectContent>
+              </Select>
+              <FormDescription>Moneda principal para tus transacciones</FormDescription>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+
+        {/* Language */}
+        <FormField
+          control={form.control}
+          name="language"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>Idioma</FormLabel>
+              <Select
+                onValueChange={field.onChange}
+                defaultValue={field.value}
+                disabled={isLoading}
+              >
+                <FormControl>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Seleccioná tu idioma" />
+                  </SelectTrigger>
+                </FormControl>
+                <SelectContent>
+                  <SelectItem value="es-CO">Español (Colombia)</SelectItem>
+                  <SelectItem value="en-US">English (US)</SelectItem>
+                </SelectContent>
+              </Select>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+
+        {/* Date Format */}
+        <FormField
+          control={form.control}
+          name="dateFormat"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>Formato de fecha</FormLabel>
+              <Select
+                onValueChange={field.onChange}
+                defaultValue={field.value}
+                disabled={isLoading}
+              >
+                <FormControl>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Seleccioná el formato" />
+                  </SelectTrigger>
+                </FormControl>
+                <SelectContent>
+                  <SelectItem value="DD/MM/YYYY">DD/MM/YYYY (día/mes/año)</SelectItem>
+                  <SelectItem value="MM/DD/YYYY">MM/DD/YYYY (mes/día/año)</SelectItem>
+                </SelectContent>
+              </Select>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+
+        {/* Success message */}
+        {successMessage && (
+          <div className="rounded-md bg-green-50 p-3 text-sm text-green-800">{successMessage}</div>
+        )}
+
+        {/* Error message */}
+        {form.formState.errors.root && (
+          <div className="bg-destructive/15 text-destructive rounded-md p-3 text-sm">
+            {form.formState.errors.root.message}
+          </div>
+        )}
+
+        {/* Submit button */}
+        <Button type="submit" disabled={isLoading}>
+          {isLoading ? 'Guardando...' : 'Guardar cambios'}
+        </Button>
+      </form>
+    </Form>
+  );
+}

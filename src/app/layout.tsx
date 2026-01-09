@@ -1,6 +1,8 @@
 import type { Metadata } from 'next';
 import './globals.css';
+import 'react-day-picker/style.css';
 import { TRPCProvider } from '@/shared/providers/trpc-provider';
+import { SessionProvider } from '@/shared/providers/session-provider';
 
 export const metadata: Metadata = {
   title: 'Rumbo - Tu Asistente Financiero Personal',
@@ -15,7 +17,9 @@ export default function RootLayout({
   return (
     <html lang="es-CO">
       <body>
-        <TRPCProvider>{children}</TRPCProvider>
+        <SessionProvider>
+          <TRPCProvider>{children}</TRPCProvider>
+        </SessionProvider>
       </body>
     </html>
   );

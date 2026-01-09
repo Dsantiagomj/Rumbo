@@ -3,7 +3,7 @@ import { appRouter } from '@/shared/lib/trpc/root';
 
 describe('Health Router', () => {
   it('returns health check status', async () => {
-    const caller = appRouter.createCaller({});
+    const caller = appRouter.createCaller({ session: null });
     const result = await caller.health.check();
 
     expect(result).toMatchObject({
@@ -14,7 +14,7 @@ describe('Health Router', () => {
   });
 
   it('echoes message back', async () => {
-    const caller = appRouter.createCaller({});
+    const caller = appRouter.createCaller({ session: null });
     const result = await caller.health.echo({ message: 'Hello' });
 
     expect(result.message).toBe('Hello');
@@ -23,7 +23,7 @@ describe('Health Router', () => {
   });
 
   it('validates echo input', async () => {
-    const caller = appRouter.createCaller({});
+    const caller = appRouter.createCaller({ session: null });
 
     await expect(() => caller.health.echo({ message: '' })).rejects.toThrow();
   });

@@ -4,9 +4,11 @@
  */
 import { router } from './init';
 import { healthRouter } from '@/features/health/api/router';
+import { authRouter } from '@/features/auth/api/router';
 
 export const appRouter = router({
   health: healthRouter,
+  auth: authRouter,
   // Feature routers will be added here:
   // transactions: transactionsRouter,
   // bills: billsRouter,
