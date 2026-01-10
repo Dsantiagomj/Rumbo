@@ -6,6 +6,7 @@
  * This server-side function only processes PNG images with OpenAI Vision API.
  */
 import { openai } from '@/shared/lib/openai';
+import type { ChatCompletionContentPart } from 'openai/resources/chat/completions';
 import type { BankParseResult } from '@/shared/lib/bank-parser/types';
 
 /**
@@ -21,23 +22,25 @@ export class PDFPasswordError extends Error {
 }
 
 const PDF_OCR_PROMPT = `
-Analiza este estado de cuenta bancario colombiano y extrae la siguiente información:
+Analiza este estado de cuenta bancario colombiano (puede tener múltiples páginas) y extrae la siguiente información:
 
 1. **Banco**: Nombre del banco (Bancolombia, Nequi, Davivienda, etc.)
 2. **Tipo de cuenta**: SAVINGS (ahorros), CHECKING (corriente), o CREDIT_CARD (tarjeta de crédito)
 3. **Balance inicial**: Saldo al inicio del período (si está disponible)
 4. **Balance final**: Saldo al final del período
-5. **Transacciones**: Lista de todas las transacciones visibles con:
+5. **Transacciones**: Lista de TODAS las transacciones visibles en TODAS las páginas con:
    - Fecha (formato ISO 8601: YYYY-MM-DD)
    - Descripción (texto completo)
    - Monto (negativo para gastos/débitos, positivo para ingresos/créditos)
 
 IMPORTANTE:
-- Analiza TODAS las transacciones que puedas ver claramente en el documento
+- Si hay MÚLTIPLES PÁGINAS, analiza TODAS las páginas y extrae TODAS las transacciones de cada página
+- Combina todas las transacciones de todas las páginas en una sola lista
 - Los montos deben ser números (sin símbolos de moneda ni comas)
 - Las fechas deben estar en formato YYYY-MM-DD
 - Si ves "Retiros" o "Débitos", usa montos negativos
 - Si ves "Consignaciones" o "Créditos", usa montos positivos
+- NO omitas transacciones por falta de espacio - incluye TODAS las que veas
 
 Devuelve SOLO un JSON válido con esta estructura:
 {
@@ -70,45 +73,52 @@ interface PDFOCRResponse {
 }
 
 /**
- * Parse bank statement image (PNG) using OpenAI Vision API
+ * Parse bank statement images (PNG) using OpenAI Vision API
  *
- * @param base64PNG - Base64 encoded PNG image (already converted from PDF on client)
+ * @param base64PNGs - Array of base64 encoded PNG images (one per page)
  * @returns Parsed bank account and transactions
  */
-export async function parseBankPDF(base64PNG: string): Promise<BankParseResult> {
+export async function parseBankPDF(base64PNGs: string[]): Promise<BankParseResult> {
   try {
-    // Process PNG image with OpenAI Vision API
+    // Build content array with prompt + all page images
+    const content: ChatCompletionContentPart[] = [
+      {
+        type: 'text',
+        text: PDF_OCR_PROMPT,
+      },
+    ];
+
+    // Add all pages as images
+    for (const base64PNG of base64PNGs) {
+      content.push({
+        type: 'image_url',
+        image_url: {
+          url: `data:image/png;base64,${base64PNG}`,
+          detail: 'high', // High detail for better accuracy
+        },
+      });
+    }
+
+    // Process all PNG images with OpenAI Vision API in a single call
     const response = await openai.chat.completions.create({
       model: 'gpt-4o',
-      max_tokens: 4096,
+      max_tokens: 16384, // Increased for multi-page PDFs with many transactions
       temperature: 0.1, // Low temperature for consistent parsing
       messages: [
         {
           role: 'user',
-          content: [
-            {
-              type: 'text',
-              text: PDF_OCR_PROMPT,
-            },
-            {
-              type: 'image_url',
-              image_url: {
-                url: `data:image/png;base64,${base64PNG}`,
-                detail: 'high', // High detail for better accuracy
-              },
-            },
-          ],
+          content,
         },
       ],
     });
 
-    const content = response.choices[0]?.message?.content;
-    if (!content) {
+    const responseContent = response.choices[0]?.message?.content;
+    if (!responseContent) {
       throw new Error('No se recibió respuesta de OpenAI');
     }
 
     // Parse JSON response (remove any markdown formatting if present)
-    const jsonMatch = content.match(/\{[\s\S]*\}/);
+    const jsonMatch = responseContent.match(/\{[\s\S]*\}/);
     if (!jsonMatch) {
       throw new Error('No se pudo extraer JSON de la respuesta');
     }

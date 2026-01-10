@@ -63,10 +63,10 @@ export function FileUploadZone({ onUploadSuccess }: FileUploadZoneProps) {
         throw new Error('No se pudieron extraer páginas del PDF');
       }
 
-      // Send first page as PNG to backend
+      // Send ALL pages as PNG array to backend
       return await parsePDF.mutateAsync({
         fileName,
-        fileContent: pngImages[0].imageData,
+        fileContent: pngImages.map((img) => img.imageData),
       });
     },
     [parsePDF, profile],

@@ -79,14 +79,18 @@ export const importRouter = router({
     .input(
       z.object({
         fileName: z.string(),
-        fileContent: z.string(), // base64 encoded PNG image
+        fileContent: z.union([
+          z.string(), // Single page (backwards compatible)
+          z.array(z.string()), // Multiple pages
+        ]),
       }),
     )
     .mutation(async ({ ctx, input }) => {
       try {
-        // Parse PNG image with OpenAI Vision
+        // Parse PNG image(s) with OpenAI Vision
         // Note: PDF to PNG conversion and password handling done client-side
-        const result = await parseBankPDF(input.fileContent);
+        const pngPages = Array.isArray(input.fileContent) ? input.fileContent : [input.fileContent];
+        const result = await parseBankPDF(pngPages);
 
         // Create import record
         const importRecord = await ctx.db.dataImport.create({
