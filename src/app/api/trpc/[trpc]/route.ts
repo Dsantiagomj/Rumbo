@@ -4,6 +4,7 @@
 import { fetchRequestHandler } from '@trpc/server/adapters/fetch';
 import { appRouter } from '@/shared/lib/trpc/root';
 import { auth } from '@/shared/lib/auth';
+import { db } from '@/shared/lib/db';
 import type { Context } from '@/shared/lib/trpc/init';
 
 const handler = async (req: Request) => {
@@ -16,6 +17,7 @@ const handler = async (req: Request) => {
     router: appRouter,
     createContext: (): Context => ({
       session,
+      db,
     }),
   });
 };

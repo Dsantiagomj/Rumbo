@@ -6,11 +6,12 @@
  */
 import { appRouter } from './root';
 import { auth } from '../auth';
+import { db } from '../db';
 import type { Context } from './init';
 
 export const createTRPCContext = async (): Promise<Context> => {
   const session = await auth();
-  return { session };
+  return { session, db };
 };
 
 export const getTRPCCaller = async () => {

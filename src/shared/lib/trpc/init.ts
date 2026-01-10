@@ -5,10 +5,12 @@
 import { initTRPC, TRPCError } from '@trpc/server';
 import superjson from 'superjson';
 import type { Session } from 'next-auth';
+import type { PrismaClient } from '@prisma/client';
 
 // Define context type
 export type Context = {
   session: Session | null;
+  db: PrismaClient;
 };
 
 // Create tRPC instance with context
@@ -32,6 +34,7 @@ export const protectedProcedure = t.procedure.use(async ({ ctx, next }) => {
   return next({
     ctx: {
       session: ctx.session,
+      db: ctx.db,
     },
   });
 });
