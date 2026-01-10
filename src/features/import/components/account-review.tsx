@@ -264,9 +264,14 @@ export function AccountReview({ importData, selectedAccountId }: AccountReviewPr
     return suggestions.filter((s) => !dismissedSuggestions.has(s.type));
   }, [allTransactions, dismissedSuggestions]);
 
-  // Calculate initial balance (working backwards from current balance)
+  // Calculate transaction totals
   const totalAmount = allTransactions.reduce((sum, tx) => sum + tx.amount, 0);
-  const calculatedInitialBalance = currentBalance - totalAmount;
+  const totalIncome = allTransactions
+    .filter((tx) => tx.type === 'INCOME')
+    .reduce((sum, tx) => sum + tx.amount, 0);
+  const totalExpenses = allTransactions
+    .filter((tx) => tx.type === 'EXPENSE')
+    .reduce((sum, tx) => sum + Math.abs(tx.amount), 0);
 
   // Check if balance matches reported balance
   const hasReportedBalance = importData.account.reportedBalance !== undefined;
@@ -380,7 +385,7 @@ export function AccountReview({ importData, selectedAccountId }: AccountReviewPr
           bankName: importData.account.bankName,
           accountType: importData.account.accountType,
           accountNumber: accountNumber || undefined,
-          initialBalance: calculatedInitialBalance, // Calculated from current balance
+          initialBalance: currentBalance, // Current balance confirmed by user
         },
         transactions: allTransactions.map((tx, index) => ({
           date: tx.date,
@@ -540,49 +545,61 @@ export function AccountReview({ importData, selectedAccountId }: AccountReviewPr
       {/* Balance Summary - Only for new accounts */}
       {isNewAccount && (
         <Card className="p-6">
-          <h3 className="mb-4 text-lg font-semibold">Resumen de Balance</h3>
+          <h3 className="mb-4 text-lg font-semibold">Resumen</h3>
 
-          <div className="space-y-2">
-            <div className="flex justify-between">
-              <span className="text-muted-foreground">Balance actual (ahora):</span>
-              <span className="font-medium">
-                ${currentBalance.toLocaleString('es-CO', { minimumFractionDigits: 2 })}
-              </span>
+          <div className="space-y-3">
+            {/* Bank reported balance */}
+            {hasReportedBalance && (
+              <div className="bg-muted/50 rounded-lg border p-3">
+                <div className="flex justify-between">
+                  <span className="text-muted-foreground text-sm">Balance reportado (banco):</span>
+                  <span className="font-medium">
+                    $
+                    {importData.account.reportedBalance!.toLocaleString('es-CO', {
+                      minimumFractionDigits: 2,
+                    })}
+                  </span>
+                </div>
+              </div>
+            )}
+
+            {/* Transaction summary */}
+            <div className="space-y-2">
+              <div className="flex justify-between text-sm">
+                <span className="text-muted-foreground">
+                  Transacciones en el período ({allTransactions.length}):
+                </span>
+                <span className="font-medium">
+                  {totalAmount >= 0 ? '+' : ''}$
+                  {totalAmount.toLocaleString('es-CO', { minimumFractionDigits: 2 })}
+                </span>
+              </div>
+              <div className="ml-4 flex justify-between text-xs">
+                <span className="text-muted-foreground">Ingresos:</span>
+                <span className="text-green-600">
+                  +${totalIncome.toLocaleString('es-CO', { minimumFractionDigits: 2 })}
+                </span>
+              </div>
+              <div className="ml-4 flex justify-between text-xs">
+                <span className="text-muted-foreground">Gastos:</span>
+                <span className="text-red-600">
+                  -${totalExpenses.toLocaleString('es-CO', { minimumFractionDigits: 2 })}
+                </span>
+              </div>
             </div>
-            <div className="flex justify-between">
-              <span className="text-muted-foreground">
-                Transacciones del período ({importData.transactions.length}):
-              </span>
-              <span
-                className={`font-medium ${totalAmount >= 0 ? 'text-green-600' : 'text-red-600'}`}
-              >
-                {totalAmount >= 0 ? '+' : ''}$
-                {totalAmount.toLocaleString('es-CO', { minimumFractionDigits: 2 })}
-              </span>
-            </div>
-            <div className="border-t pt-2">
-              <div className="flex justify-between text-lg">
-                <span className="font-semibold">Balance inicial calculado:</span>
-                <span className="font-bold">
-                  ${calculatedInitialBalance.toLocaleString('es-CO', { minimumFractionDigits: 2 })}
+
+            {/* User confirmed balance */}
+            <div className="border-t pt-3">
+              <div className="flex justify-between">
+                <span className="font-semibold">Balance actual (confirmado):</span>
+                <span className="text-lg font-bold">
+                  ${currentBalance.toLocaleString('es-CO', { minimumFractionDigits: 2 })}
                 </span>
               </div>
               <p className="text-muted-foreground mt-1 text-xs">
-                Este es el saldo que tenías antes de estas transacciones
+                El saldo que ves ahora en tu cuenta
               </p>
             </div>
-
-            {hasReportedBalance && (
-              <div className="mt-4 flex justify-between text-sm">
-                <span className="text-muted-foreground">Balance reportado por el banco:</span>
-                <span>
-                  $
-                  {importData.account.reportedBalance!.toLocaleString('es-CO', {
-                    minimumFractionDigits: 2,
-                  })}
-                </span>
-              </div>
-            )}
           </div>
 
           {/* Balance Mismatch Warning */}
@@ -590,8 +607,10 @@ export function AccountReview({ importData, selectedAccountId }: AccountReviewPr
             <Alert variant="destructive" className="mt-4">
               <AlertTriangle className="h-4 w-4" />
               <AlertDescription>
-                El balance actual que ingresaste no coincide con el reportado por el banco. Verifica
-                que sea correcto antes de continuar.
+                El balance que confirmaste (${currentBalance.toLocaleString('es-CO')}) no coincide
+                con el reportado por el banco ($
+                {importData.account.reportedBalance!.toLocaleString('es-CO')}). Considera agregar
+                transacciones faltantes o actualizar el archivo.
               </AlertDescription>
             </Alert>
           )}
@@ -847,7 +866,12 @@ export function AccountReview({ importData, selectedAccountId }: AccountReviewPr
                   categoryId={categoryId}
                   categoryName={categoryName}
                   confidence={confidence}
-                  categories={categories?.map((c) => ({ id: c.id, name: c.name, key: c.key }))}
+                  categories={categories?.map((c) => ({
+                    id: c.id,
+                    name: c.name,
+                    key: c.key,
+                    type: c.type as 'EXPENSE' | 'INCOME',
+                  }))}
                   onCategoryChange={(newCategoryId) => handleCategoryChange(index, newCategoryId)}
                   editable={showCategories}
                 />
@@ -885,7 +909,12 @@ export function AccountReview({ importData, selectedAccountId }: AccountReviewPr
                   categoryId={categoryId}
                   categoryName={categoryName}
                   confidence={confidence}
-                  categories={categories?.map((c) => ({ id: c.id, name: c.name, key: c.key }))}
+                  categories={categories?.map((c) => ({
+                    id: c.id,
+                    name: c.name,
+                    key: c.key,
+                    type: c.type as 'EXPENSE' | 'INCOME',
+                  }))}
                   onCategoryChange={(newCategoryId) =>
                     handleCategoryChange(globalIndex, newCategoryId)
                   }

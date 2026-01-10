@@ -32,6 +32,7 @@ interface Category {
   id: string;
   name: string;
   key: string;
+  type: 'EXPENSE' | 'INCOME';
 }
 
 interface TransactionPreviewProps {
@@ -90,8 +91,7 @@ export function TransactionPreview({
   });
 
   // Filter categories by transaction type
-  // For now, show all categories. Future: filter by transaction type
-  const filteredCategories = categories;
+  const filteredCategories = categories?.filter((cat) => cat.type === transaction.type);
 
   const handleCreateCategory = () => {
     if (!newCategoryName.trim()) {

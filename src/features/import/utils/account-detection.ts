@@ -121,9 +121,9 @@ export function detectAdditionalAccounts(
 function getReasonForAccountType(type: SuggestedAccountType): string {
   switch (type) {
     case 'CREDIT_CARD':
-      return 'Detectamos pagos de tarjeta de crédito. Considera agregar tu tarjeta para ver tu deuda total y pagos pendientes.';
+      return 'Detectamos pagos de tarjeta de crédito. Estas transacciones son movimientos (no gastos reales). Considera agregar tu tarjeta de crédito como cuenta para ver tu cupo disponible.';
     case 'CASH':
-      return 'Detectamos retiros de cajero. Considera configurar una cuenta de efectivo para rastrear tus gastos en cash.';
+      return 'Detectamos retiros de cajero. Estos son movimientos de tu cuenta a efectivo (no gastos). Agrega una cuenta de efectivo para rastrear cómo usas el dinero en cash.';
     case 'INVESTMENT':
       return 'Detectamos inversiones. Agrega una cuenta de inversiones para ver el rendimiento de tu portafolio.';
     case 'SAVINGS_ACCOUNT':

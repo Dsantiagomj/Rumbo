@@ -46,20 +46,6 @@ const defaultCategories = [
     type: 'INCOME',
   },
   {
-    key: 'REFUND',
-    name: 'Devoluciones',
-    icon: 'RefreshCcw',
-    color: 'financial-positive',
-    type: 'INCOME',
-  },
-  {
-    key: 'GIFT_INCOME',
-    name: 'Regalos Recibidos',
-    icon: 'Gift',
-    color: 'financial-positive',
-    type: 'INCOME',
-  },
-  {
     key: 'OTHER_INCOME',
     name: 'Otros Ingresos',
     icon: 'Plus',
@@ -67,78 +53,29 @@ const defaultCategories = [
     type: 'INCOME',
   },
 
-  // FOOD & GROCERIES
+  // FOOD
   {
-    key: 'GROCERIES',
-    name: 'Mercado',
-    icon: 'ShoppingCart',
-    color: 'category-food',
-    type: 'EXPENSE',
-  },
-  {
-    key: 'RESTAURANTS',
-    name: 'Restaurantes',
+    key: 'FOOD',
+    name: 'Comida',
     icon: 'UtensilsCrossed',
-    color: 'category-food',
-    type: 'EXPENSE',
-  },
-  {
-    key: 'COFFEE_SNACKS',
-    name: 'Café y Meriendas',
-    icon: 'Coffee',
     color: 'category-food',
     type: 'EXPENSE',
   },
 
   // TRANSPORTATION
   {
-    key: 'PUBLIC_TRANSPORT',
-    name: 'Transporte Público',
-    icon: 'Bus',
-    color: 'category-transport',
-    type: 'EXPENSE',
-  },
-  {
-    key: 'TAXI_UBER',
-    name: 'Taxi / Uber',
+    key: 'TRANSPORT',
+    name: 'Transporte',
     icon: 'Car',
     color: 'category-transport',
     type: 'EXPENSE',
   },
-  {
-    key: 'GAS',
-    name: 'Gasolina',
-    icon: 'Fuel',
-    color: 'category-transport',
-    type: 'EXPENSE',
-  },
-  {
-    key: 'PARKING',
-    name: 'Parqueadero',
-    icon: 'ParkingCircle',
-    color: 'category-transport',
-    type: 'EXPENSE',
-  },
-  {
-    key: 'CAR_MAINTENANCE',
-    name: 'Mantenimiento Vehículo',
-    icon: 'Wrench',
-    color: 'category-transport',
-    type: 'EXPENSE',
-  },
 
-  // HOUSING
+  // HOUSING & BILLS
   {
-    key: 'RENT',
-    name: 'Arriendo',
+    key: 'HOUSING',
+    name: 'Vivienda',
     icon: 'Home',
-    color: 'category-bills',
-    type: 'EXPENSE',
-  },
-  {
-    key: 'MORTGAGE',
-    name: 'Hipoteca',
-    icon: 'Building',
     color: 'category-bills',
     type: 'EXPENSE',
   },
@@ -149,70 +86,21 @@ const defaultCategories = [
     color: 'category-bills',
     type: 'EXPENSE',
   },
-  {
-    key: 'INTERNET_PHONE',
-    name: 'Internet y Teléfono',
-    icon: 'Wifi',
-    color: 'category-bills',
-    type: 'EXPENSE',
-  },
-  {
-    key: 'HOME_MAINTENANCE',
-    name: 'Mantenimiento Hogar',
-    icon: 'Hammer',
-    color: 'category-bills',
-    type: 'EXPENSE',
-  },
 
   // SHOPPING
   {
-    key: 'CLOTHING',
-    name: 'Ropa y Calzado',
+    key: 'SHOPPING',
+    name: 'Compras',
     icon: 'ShoppingBag',
-    color: 'category-personal',
-    type: 'EXPENSE',
-  },
-  {
-    key: 'ELECTRONICS',
-    name: 'Electrónicos',
-    icon: 'Laptop',
-    color: 'category-personal',
-    type: 'EXPENSE',
-  },
-  {
-    key: 'HOME_GOODS',
-    name: 'Artículos para el Hogar',
-    icon: 'Sofa',
     color: 'category-personal',
     type: 'EXPENSE',
   },
 
   // ENTERTAINMENT
   {
-    key: 'STREAMING',
-    name: 'Streaming (Netflix, etc)',
-    icon: 'Tv',
-    color: 'category-entertainment',
-    type: 'EXPENSE',
-  },
-  {
-    key: 'MOVIES_EVENTS',
-    name: 'Cine y Eventos',
+    key: 'ENTERTAINMENT',
+    name: 'Entretenimiento',
     icon: 'Film',
-    color: 'category-entertainment',
-    type: 'EXPENSE',
-  },
-  {
-    key: 'HOBBIES',
-    name: 'Hobbies',
-    icon: 'Palette',
-    color: 'category-entertainment',
-    type: 'EXPENSE',
-  },
-  {
-    key: 'SPORTS',
-    name: 'Deportes',
-    icon: 'Dumbbell',
     color: 'category-entertainment',
     type: 'EXPENSE',
   },
@@ -226,53 +114,18 @@ const defaultCategories = [
 
   // HEALTH
   {
-    key: 'MEDICAL',
-    name: 'Médico y Medicamentos',
+    key: 'HEALTH',
+    name: 'Salud',
     icon: 'Heart',
-    color: 'category-health',
-    type: 'EXPENSE',
-  },
-  {
-    key: 'DENTAL',
-    name: 'Odontología',
-    icon: 'Smile',
-    color: 'category-health',
-    type: 'EXPENSE',
-  },
-  {
-    key: 'GYM',
-    name: 'Gimnasio',
-    icon: 'Dumbbell',
-    color: 'category-health',
-    type: 'EXPENSE',
-  },
-  {
-    key: 'INSURANCE',
-    name: 'Seguros',
-    icon: 'Shield',
     color: 'category-health',
     type: 'EXPENSE',
   },
 
   // EDUCATION
   {
-    key: 'TUITION',
-    name: 'Matrícula',
+    key: 'EDUCATION',
+    name: 'Educación',
     icon: 'GraduationCap',
-    color: 'category-education',
-    type: 'EXPENSE',
-  },
-  {
-    key: 'BOOKS',
-    name: 'Libros y Material',
-    icon: 'Book',
-    color: 'category-education',
-    type: 'EXPENSE',
-  },
-  {
-    key: 'COURSES',
-    name: 'Cursos Online',
-    icon: 'Monitor',
     color: 'category-education',
     type: 'EXPENSE',
   },
@@ -285,41 +138,13 @@ const defaultCategories = [
     color: 'category-personal',
     type: 'EXPENSE',
   },
-  {
-    key: 'HAIRCUT',
-    name: 'Peluquería',
-    icon: 'Scissors',
-    color: 'category-personal',
-    type: 'EXPENSE',
-  },
 
-  // FINANCIAL
+  // FINANCIAL (Movimientos, no gastos reales)
   {
-    key: 'BANK_FEES',
-    name: 'Comisiones Bancarias',
-    icon: 'Building2',
-    color: 'category-debt',
-    type: 'EXPENSE',
-  },
-  {
-    key: 'CREDIT_CARD_PAYMENT',
-    name: 'Pago Tarjeta de Crédito',
-    icon: 'CreditCard',
-    color: 'category-debt',
-    type: 'EXPENSE',
-  },
-  {
-    key: 'LOAN_PAYMENT',
-    name: 'Pago Préstamo',
-    icon: 'FileText',
-    color: 'category-debt',
-    type: 'EXPENSE',
-  },
-  {
-    key: 'INVESTMENT',
-    name: 'Inversiones',
-    icon: 'TrendingUp',
-    color: 'category-savings',
+    key: 'TRANSFER',
+    name: 'Transferencias',
+    icon: 'ArrowLeftRight',
+    color: 'category-other',
     type: 'EXPENSE',
   },
   {
@@ -330,14 +155,21 @@ const defaultCategories = [
     type: 'EXPENSE',
   },
   {
-    key: 'ATM_WITHDRAWAL',
-    name: 'Retiro Cajero',
-    icon: 'Banknote',
-    color: 'category-other',
+    key: 'INVESTMENT',
+    name: 'Inversiones',
+    icon: 'TrendingUp',
+    color: 'category-savings',
     type: 'EXPENSE',
   },
 
-  // GIFTS & DONATIONS
+  // OTHER
+  {
+    key: 'SUBSCRIPTIONS',
+    name: 'Suscripciones',
+    icon: 'RefreshCcw',
+    color: 'category-bills',
+    type: 'EXPENSE',
+  },
   {
     key: 'GIFTS',
     name: 'Regalos',
@@ -346,32 +178,12 @@ const defaultCategories = [
     type: 'EXPENSE',
   },
   {
-    key: 'DONATIONS',
-    name: 'Donaciones',
-    icon: 'Heart',
-    color: 'category-personal',
-    type: 'EXPENSE',
-  },
-
-  // PETS
-  {
     key: 'PETS',
     name: 'Mascotas',
     icon: 'Dog',
     color: 'category-personal',
     type: 'EXPENSE',
   },
-
-  // CHILDREN
-  {
-    key: 'CHILDCARE',
-    name: 'Cuidado Infantil',
-    icon: 'Baby',
-    color: 'category-personal',
-    type: 'EXPENSE',
-  },
-
-  // TAXES
   {
     key: 'TAXES',
     name: 'Impuestos',
@@ -379,8 +191,6 @@ const defaultCategories = [
     color: 'category-bills',
     type: 'EXPENSE',
   },
-
-  // OTHER
   {
     key: 'OTHER',
     name: 'Otros',
