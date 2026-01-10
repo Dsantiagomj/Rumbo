@@ -114,6 +114,7 @@ export function AccountReview({ importData, selectedAccountId }: AccountReviewPr
 
   // Filter state
   const [searchTerm, setSearchTerm] = useState('');
+  const [amountFilter, setAmountFilter] = useState('');
   const [typeFilter, setTypeFilter] = useState<'ALL' | 'INCOME' | 'EXPENSE'>('ALL');
 
   // Account suggestions state
@@ -243,19 +244,27 @@ export function AccountReview({ importData, selectedAccountId }: AccountReviewPr
     return null;
   }, [allTransactions]);
 
-  // Filter transactions
+  // Filter transactions (optimized with useMemo to prevent re-renders)
   const filteredTransactions = useMemo(() => {
     return allTransactions.filter((tx) => {
-      // Search filter
+      // Search filter (by description)
       const matchesSearch =
         searchTerm === '' || tx.description.toLowerCase().includes(searchTerm.toLowerCase());
+
+      // Amount filter (search by amount)
+      const matchesAmount = (() => {
+        if (amountFilter === '') return true;
+        const filterValue = parseFloat(amountFilter);
+        if (isNaN(filterValue)) return true;
+        return Math.abs(tx.amount) === Math.abs(filterValue);
+      })();
 
       // Type filter
       const matchesType = typeFilter === 'ALL' || tx.type === typeFilter;
 
-      return matchesSearch && matchesType;
+      return matchesSearch && matchesAmount && matchesType;
     });
-  }, [allTransactions, searchTerm, typeFilter]);
+  }, [allTransactions, searchTerm, amountFilter, typeFilter]);
 
   // Detect additional accounts based on transaction patterns
   const accountSuggestions = useMemo(() => {
@@ -799,10 +808,30 @@ export function AccountReview({ importData, selectedAccountId }: AccountReviewPr
             )}
           </div>
 
+          {/* Amount Filter */}
+          <div className="relative w-full sm:w-[180px]">
+            <Input
+              type="number"
+              placeholder="Buscar por monto..."
+              value={amountFilter}
+              onChange={(e) => setAmountFilter(e.target.value)}
+            />
+            {amountFilter && (
+              <Button
+                variant="ghost"
+                size="icon-sm"
+                className="absolute top-1/2 right-1 -translate-y-1/2"
+                onClick={() => setAmountFilter('')}
+              >
+                <X className="h-4 w-4" />
+              </Button>
+            )}
+          </div>
+
           {/* Type Filter */}
           <div className="flex gap-2">
             <Select value={typeFilter} onValueChange={(v) => setTypeFilter(v as typeof typeFilter)}>
-              <SelectTrigger className="w-[150px]">
+              <SelectTrigger className="w-full sm:w-[150px]">
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
@@ -813,12 +842,13 @@ export function AccountReview({ importData, selectedAccountId }: AccountReviewPr
             </Select>
 
             {/* Clear Filters */}
-            {(searchTerm || typeFilter !== 'ALL') && (
+            {(searchTerm || amountFilter || typeFilter !== 'ALL') && (
               <Button
                 variant="ghost"
                 size="sm"
                 onClick={() => {
                   setSearchTerm('');
+                  setAmountFilter('');
                   setTypeFilter('ALL');
                 }}
               >
@@ -829,7 +859,7 @@ export function AccountReview({ importData, selectedAccountId }: AccountReviewPr
         </div>
 
         {/* Results Count */}
-        {(searchTerm || typeFilter !== 'ALL') && (
+        {(searchTerm || amountFilter || typeFilter !== 'ALL') && (
           <p className="text-muted-foreground mb-2 text-sm">
             Mostrando {filteredTransactions.length} de {allTransactions.length} transacciones
           </p>

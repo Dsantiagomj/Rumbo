@@ -23,177 +23,163 @@ const prisma = new PrismaClient({
 });
 
 const defaultCategories = [
-  // INCOME CATEGORIES
+  // ============================================
+  // INCOME CATEGORIES (8)
+  // ============================================
   {
     key: 'SALARY',
-    name: 'Salario',
+    name: 'Salary',
     icon: 'Briefcase',
     color: 'financial-positive',
     type: 'INCOME',
   },
   {
     key: 'FREELANCE',
-    name: 'Trabajo Independiente',
+    name: 'Freelance',
     icon: 'Laptop',
     color: 'financial-positive',
     type: 'INCOME',
   },
   {
-    key: 'INVESTMENT_INCOME',
-    name: 'Rendimientos',
+    key: 'INVESTMENT_RETURNS',
+    name: 'Investment Returns',
     icon: 'TrendingUp',
     color: 'financial-positive',
     type: 'INCOME',
   },
   {
+    key: 'GIFTS_RECEIVED',
+    name: 'Gifts Received',
+    icon: 'Gift',
+    color: 'financial-positive',
+    type: 'INCOME',
+  },
+  {
+    key: 'LOAN_REPAYMENT',
+    name: 'Loan Repayment',
+    icon: 'DollarSign',
+    color: 'financial-positive',
+    type: 'INCOME',
+  },
+  {
+    key: 'BUSINESS_INCOME',
+    name: 'Business Income',
+    icon: 'Store',
+    color: 'financial-positive',
+    type: 'INCOME',
+  },
+  {
+    key: 'RENTAL_INCOME',
+    name: 'Rental Income',
+    icon: 'Building',
+    color: 'financial-positive',
+    type: 'INCOME',
+  },
+  {
     key: 'OTHER_INCOME',
-    name: 'Otros Ingresos',
+    name: 'Other Income',
     icon: 'Plus',
     color: 'financial-positive',
     type: 'INCOME',
   },
 
-  // FOOD
+  // ============================================
+  // EXPENSE CATEGORIES (14)
+  // ============================================
   {
-    key: 'FOOD',
-    name: 'Comida',
+    key: 'FOOD_DINING',
+    name: 'Food & Dining',
     icon: 'UtensilsCrossed',
     color: 'category-food',
     type: 'EXPENSE',
   },
-
-  // TRANSPORTATION
   {
     key: 'TRANSPORT',
-    name: 'Transporte',
+    name: 'Transport',
     icon: 'Car',
     color: 'category-transport',
     type: 'EXPENSE',
   },
-
-  // HOUSING & BILLS
   {
     key: 'HOUSING',
-    name: 'Vivienda',
+    name: 'Housing',
     icon: 'Home',
     color: 'category-bills',
     type: 'EXPENSE',
   },
   {
     key: 'UTILITIES',
-    name: 'Servicios Públicos',
+    name: 'Utilities',
     icon: 'Lightbulb',
     color: 'category-bills',
     type: 'EXPENSE',
   },
-
-  // SHOPPING
+  {
+    key: 'GROCERIES',
+    name: 'Groceries',
+    icon: 'ShoppingCart',
+    color: 'category-food',
+    type: 'EXPENSE',
+  },
   {
     key: 'SHOPPING',
-    name: 'Compras',
+    name: 'Shopping',
     icon: 'ShoppingBag',
     color: 'category-personal',
     type: 'EXPENSE',
   },
-
-  // ENTERTAINMENT
+  {
+    key: 'HEALTH',
+    name: 'Health',
+    icon: 'Heart',
+    color: 'category-health',
+    type: 'EXPENSE',
+  },
+  {
+    key: 'EDUCATION',
+    name: 'Education',
+    icon: 'GraduationCap',
+    color: 'category-education',
+    type: 'EXPENSE',
+  },
   {
     key: 'ENTERTAINMENT',
-    name: 'Entretenimiento',
+    name: 'Entertainment',
     icon: 'Film',
     color: 'category-entertainment',
     type: 'EXPENSE',
   },
   {
     key: 'TRAVEL',
-    name: 'Viajes',
+    name: 'Travel',
     icon: 'Plane',
     color: 'category-entertainment',
     type: 'EXPENSE',
   },
-
-  // HEALTH
-  {
-    key: 'HEALTH',
-    name: 'Salud',
-    icon: 'Heart',
-    color: 'category-health',
-    type: 'EXPENSE',
-  },
-
-  // EDUCATION
-  {
-    key: 'EDUCATION',
-    name: 'Educación',
-    icon: 'GraduationCap',
-    color: 'category-education',
-    type: 'EXPENSE',
-  },
-
-  // PERSONAL CARE
-  {
-    key: 'PERSONAL_CARE',
-    name: 'Cuidado Personal',
-    icon: 'Sparkles',
-    color: 'category-personal',
-    type: 'EXPENSE',
-  },
-
-  // FINANCIAL (Movimientos, no gastos reales)
-  {
-    key: 'TRANSFER',
-    name: 'Transferencias',
-    icon: 'ArrowLeftRight',
-    color: 'category-other',
-    type: 'EXPENSE',
-  },
-  {
-    key: 'SAVINGS',
-    name: 'Ahorro',
-    icon: 'PiggyBank',
-    color: 'category-savings',
-    type: 'EXPENSE',
-  },
-  {
-    key: 'INVESTMENT',
-    name: 'Inversiones',
-    icon: 'TrendingUp',
-    color: 'category-savings',
-    type: 'EXPENSE',
-  },
-
-  // OTHER
   {
     key: 'SUBSCRIPTIONS',
-    name: 'Suscripciones',
+    name: 'Subscriptions',
     icon: 'RefreshCcw',
     color: 'category-bills',
     type: 'EXPENSE',
   },
   {
     key: 'GIFTS',
-    name: 'Regalos',
+    name: 'Gifts',
     icon: 'Gift',
     color: 'category-personal',
     type: 'EXPENSE',
   },
   {
     key: 'PETS',
-    name: 'Mascotas',
+    name: 'Pets',
     icon: 'Dog',
     color: 'category-personal',
     type: 'EXPENSE',
   },
   {
-    key: 'TAXES',
-    name: 'Impuestos',
-    icon: 'Receipt',
-    color: 'category-bills',
-    type: 'EXPENSE',
-  },
-  {
-    key: 'OTHER',
-    name: 'Otros',
+    key: 'OTHER_EXPENSES',
+    name: 'Other Expenses',
     icon: 'MoreHorizontal',
     color: 'category-other',
     type: 'EXPENSE',

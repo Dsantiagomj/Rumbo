@@ -4,7 +4,7 @@
  * TransactionPreview Component
  * Compact card display for a single transaction
  */
-import { useState } from 'react';
+import { useState, memo } from 'react';
 import { ArrowUpCircle, ArrowDownCircle, Tag, Sparkles, Plus } from 'lucide-react';
 import { Card } from '@/shared/components/ui/card';
 import { Badge } from '@/shared/components/ui/badge';
@@ -50,7 +50,7 @@ interface TransactionPreviewProps {
   editable?: boolean;
 }
 
-export function TransactionPreview({
+function TransactionPreviewComponent({
   transaction,
   categoryId,
   categoryName,
@@ -272,3 +272,6 @@ export function TransactionPreview({
     </Card>
   );
 }
+
+// Memoized export to prevent unnecessary re-renders
+export const TransactionPreview = memo(TransactionPreviewComponent);
