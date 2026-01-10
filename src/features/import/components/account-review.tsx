@@ -5,7 +5,7 @@
  * Review and edit account details before confirming import
  * Shows transaction list and balance reconciliation
  */
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import {
   CheckCircle2,
@@ -69,7 +69,7 @@ export function AccountReview({ importData, selectedAccountId }: AccountReviewPr
 
   const [accountName, setAccountName] = useState(importData.account.suggestedName);
   const [accountNumber, setAccountNumber] = useState('');
-  const [initialBalance, setInitialBalance] = useState(0);
+  const [currentBalance, setCurrentBalance] = useState(importData.account.reportedBalance || 0);
 
   // Reconciliation states
   const [showReconciliationModal, setShowReconciliationModal] = useState(false);
@@ -94,7 +94,8 @@ export function AccountReview({ importData, selectedAccountId }: AccountReviewPr
     new Map(),
   );
   const [categoryConfidences, setCategoryConfidences] = useState<Map<number, number>>(new Map());
-  const [showCategories, setShowCategories] = useState(false);
+  const [showCategories, setShowCategories] = useState(true); // Always show categories
+  const [isAutoCategorizing, setIsAutoCategorizing] = useState(false);
 
   // Filter state
   const [searchTerm, setSearchTerm] = useState('');
@@ -143,6 +144,56 @@ export function AccountReview({ importData, selectedAccountId }: AccountReviewPr
     return null;
   }, [isNewAccount, existingAccount, importData.transactions]);
 
+  // Auto-categorize transactions on mount
+  useEffect(() => {
+    // Only auto-categorize once when categories are first loaded
+    async function autoCategorize() {
+      if (
+        importData.transactions.length > 0 &&
+        categories &&
+        categories.length > 0 &&
+        transactionCategories.size === 0 &&
+        !isAutoCategorizing
+      ) {
+        try {
+          setIsAutoCategorizing(true);
+          const results = await categorizeMutation.mutateAsync({
+            transactions: importData.transactions.map((tx) => ({
+              description: tx.description,
+              amount: tx.amount,
+              type: tx.type,
+            })),
+          });
+
+          const newCategories = new Map<number, string>();
+          const newConfidences = new Map<number, number>();
+
+          results.forEach((result) => {
+            if (result.categoryId && result.confidence > 0.5) {
+              newCategories.set(result.index, result.categoryId);
+              newConfidences.set(result.index, result.confidence);
+            }
+          });
+
+          setTransactionCategories(newCategories);
+          setCategoryConfidences(newConfidences);
+        } catch (error) {
+          console.error('Error auto-categorizing transactions:', error);
+        } finally {
+          setIsAutoCategorizing(false);
+        }
+      }
+    }
+
+    autoCategorize();
+  }, [
+    categories,
+    importData.transactions,
+    transactionCategories.size,
+    isAutoCategorizing,
+    categorizeMutation,
+  ]);
+
   // Combine imported and additional transactions
   const allTransactions = [...importData.transactions, ...additionalTransactions];
 
@@ -160,14 +211,14 @@ export function AccountReview({ importData, selectedAccountId }: AccountReviewPr
     });
   }, [allTransactions, searchTerm, typeFilter]);
 
-  // Calculate final balance (using all transactions, not filtered)
+  // Calculate initial balance (working backwards from current balance)
   const totalAmount = allTransactions.reduce((sum, tx) => sum + tx.amount, 0);
-  const calculatedBalance = initialBalance + totalAmount;
+  const calculatedInitialBalance = currentBalance - totalAmount;
 
   // Check if balance matches reported balance
   const hasReportedBalance = importData.account.reportedBalance !== undefined;
   const balanceMismatch =
-    hasReportedBalance && Math.abs(calculatedBalance - importData.account.reportedBalance!) > 0.01;
+    hasReportedBalance && Math.abs(currentBalance - importData.account.reportedBalance!) > 0.01;
 
   const handleReconciliationConfirm = (
     method: 'OVERRIDE' | 'AI_FIND' | 'MANUAL',
@@ -215,6 +266,7 @@ export function AccountReview({ importData, selectedAccountId }: AccountReviewPr
 
   const handleAutoCategorize = async () => {
     try {
+      setIsAutoCategorizing(true);
       const results = await categorizeMutation.mutateAsync({
         transactions: allTransactions.map((tx) => ({
           description: tx.description,
@@ -238,6 +290,8 @@ export function AccountReview({ importData, selectedAccountId }: AccountReviewPr
       setShowCategories(true);
     } catch (error) {
       console.error('Error categorizing transactions:', error);
+    } finally {
+      setIsAutoCategorizing(false);
     }
   };
 
@@ -267,7 +321,7 @@ export function AccountReview({ importData, selectedAccountId }: AccountReviewPr
           bankName: importData.account.bankName,
           accountType: importData.account.accountType,
           accountNumber: accountNumber || undefined,
-          initialBalance,
+          initialBalance: calculatedInitialBalance, // Calculated from current balance
         },
         transactions: allTransactions.map((tx, index) => ({
           date: tx.date,
@@ -348,18 +402,18 @@ export function AccountReview({ importData, selectedAccountId }: AccountReviewPr
               />
             </div>
 
-            {/* Initial Balance */}
+            {/* Current Balance */}
             <div>
-              <Label htmlFor="initialBalance">Balance inicial *</Label>
+              <Label htmlFor="currentBalance">Balance actual *</Label>
               <Input
-                id="initialBalance"
+                id="currentBalance"
                 type="number"
-                value={initialBalance}
-                onChange={(e) => setInitialBalance(parseFloat(e.target.value) || 0)}
+                value={currentBalance}
+                onChange={(e) => setCurrentBalance(parseFloat(e.target.value) || 0)}
                 placeholder="0.00"
               />
               <p className="text-muted-foreground mt-1 text-sm">
-                El saldo antes de las transacciones importadas
+                El saldo que tienes ahora en tu cuenta (puedes verificarlo en tu app de banco)
               </p>
             </div>
           </div>
@@ -431,14 +485,14 @@ export function AccountReview({ importData, selectedAccountId }: AccountReviewPr
 
           <div className="space-y-2">
             <div className="flex justify-between">
-              <span className="text-muted-foreground">Balance inicial:</span>
+              <span className="text-muted-foreground">Balance actual (ahora):</span>
               <span className="font-medium">
-                ${initialBalance.toLocaleString('es-CO', { minimumFractionDigits: 2 })}
+                ${currentBalance.toLocaleString('es-CO', { minimumFractionDigits: 2 })}
               </span>
             </div>
             <div className="flex justify-between">
               <span className="text-muted-foreground">
-                Transacciones importadas ({importData.transactions.length}):
+                Transacciones del período ({importData.transactions.length}):
               </span>
               <span
                 className={`font-medium ${totalAmount >= 0 ? 'text-green-600' : 'text-red-600'}`}
@@ -449,11 +503,14 @@ export function AccountReview({ importData, selectedAccountId }: AccountReviewPr
             </div>
             <div className="border-t pt-2">
               <div className="flex justify-between text-lg">
-                <span className="font-semibold">Balance final calculado:</span>
+                <span className="font-semibold">Balance inicial calculado:</span>
                 <span className="font-bold">
-                  ${calculatedBalance.toLocaleString('es-CO', { minimumFractionDigits: 2 })}
+                  ${calculatedInitialBalance.toLocaleString('es-CO', { minimumFractionDigits: 2 })}
                 </span>
               </div>
+              <p className="text-muted-foreground mt-1 text-xs">
+                Este es el saldo que tenías antes de estas transacciones
+              </p>
             </div>
 
             {hasReportedBalance && (
@@ -474,8 +531,8 @@ export function AccountReview({ importData, selectedAccountId }: AccountReviewPr
             <Alert variant="destructive" className="mt-4">
               <AlertTriangle className="h-4 w-4" />
               <AlertDescription>
-                El balance calculado no coincide con el reportado por el banco. Se usará el balance
-                calculado y se guardará la discrepancia para revisión.
+                El balance actual que ingresaste no coincide con el reportado por el banco. Verifica
+                que sea correcto antes de continuar.
               </AlertDescription>
             </Alert>
           )}
@@ -519,17 +576,22 @@ export function AccountReview({ importData, selectedAccountId }: AccountReviewPr
             variant="outline"
             size="sm"
             onClick={handleAutoCategorize}
-            disabled={categorizeMutation.isPending || allTransactions.length === 0}
+            disabled={isAutoCategorizing || allTransactions.length === 0}
           >
-            {categorizeMutation.isPending ? (
+            {isAutoCategorizing ? (
               <>
                 <Loader2 className="mr-2 h-4 w-4 animate-spin" />
                 Categorizando...
               </>
+            ) : transactionCategories.size > 0 ? (
+              <>
+                <Sparkles className="mr-2 h-4 w-4" />
+                Re-categorizar con IA
+              </>
             ) : (
               <>
                 <Sparkles className="mr-2 h-4 w-4" />
-                Auto-categorizar con IA
+                Categorizar con IA
               </>
             )}
           </Button>
@@ -763,7 +825,7 @@ export function AccountReview({ importData, selectedAccountId }: AccountReviewPr
           isOpen={showReconciliationModal}
           onClose={() => setShowReconciliationModal(false)}
           reportedBalance={importData.account.reportedBalance || 0}
-          calculatedBalance={calculatedBalance}
+          calculatedBalance={currentBalance}
           importId={importData.importId}
           transactions={allTransactions}
           onConfirm={handleReconciliationConfirm}
