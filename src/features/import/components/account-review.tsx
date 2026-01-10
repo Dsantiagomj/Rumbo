@@ -43,6 +43,10 @@ import { TransactionPreview } from './transaction-preview';
 import { findDuplicates } from '@/features/import/utils/duplicate-detection';
 import { ReconciliationModal } from './reconciliation-modal';
 import { ManualTransactionForm } from './manual-transaction-form';
+import {
+  detectAdditionalAccounts,
+  getAccountTypeLabel,
+} from '@/features/import/utils/account-detection';
 
 interface AccountReviewProps {
   importData: {
@@ -111,6 +115,9 @@ export function AccountReview({ importData, selectedAccountId }: AccountReviewPr
   // Filter state
   const [searchTerm, setSearchTerm] = useState('');
   const [typeFilter, setTypeFilter] = useState<'ALL' | 'INCOME' | 'EXPENSE'>('ALL');
+
+  // Account suggestions state
+  const [dismissedSuggestions, setDismissedSuggestions] = useState<Set<string>>(new Set());
 
   // Fetch available categories
   const { data: categories } = trpc.categories.getAll.useQuery();
@@ -249,6 +256,13 @@ export function AccountReview({ importData, selectedAccountId }: AccountReviewPr
       return matchesSearch && matchesType;
     });
   }, [allTransactions, searchTerm, typeFilter]);
+
+  // Detect additional accounts based on transaction patterns
+  const accountSuggestions = useMemo(() => {
+    const suggestions = detectAdditionalAccounts(allTransactions);
+    // Filter out dismissed suggestions
+    return suggestions.filter((s) => !dismissedSuggestions.has(s.type));
+  }, [allTransactions, dismissedSuggestions]);
 
   // Calculate initial balance (working backwards from current balance)
   const totalAmount = allTransactions.reduce((sum, tx) => sum + tx.amount, 0);
@@ -581,6 +595,93 @@ export function AccountReview({ importData, selectedAccountId }: AccountReviewPr
               </AlertDescription>
             </Alert>
           )}
+        </Card>
+      )}
+
+      {/* Account Suggestions based on transaction patterns */}
+      {accountSuggestions.length > 0 && (
+        <Card className="border-brand-primary-200 bg-brand-primary-50 dark:bg-brand-primary-950 p-6">
+          <div className="mb-4 flex items-start gap-3">
+            <Sparkles className="text-brand-primary-600 mt-0.5 h-5 w-5" />
+            <div className="flex-1">
+              <h3 className="font-semibold">Cuentas sugeridas</h3>
+              <p className="text-muted-foreground mt-1 text-sm">
+                Detectamos patrones que sugieren configurar cuentas adicionales
+              </p>
+            </div>
+          </div>
+
+          <div className="space-y-3">
+            {accountSuggestions.map((suggestion) => (
+              <Alert key={suggestion.type} variant="default" className="bg-white dark:bg-gray-900">
+                <div className="flex items-start gap-3">
+                  <div className="flex-1">
+                    <h4 className="font-medium">{getAccountTypeLabel(suggestion.type)}</h4>
+                    <p className="text-muted-foreground mt-1 text-sm">{suggestion.reason}</p>
+
+                    {/* Show sample transactions */}
+                    <div className="mt-2">
+                      <p className="text-muted-foreground mb-1 text-xs">
+                        Ejemplos encontrados ({suggestion.transactions.length}):
+                      </p>
+                      <div className="space-y-1">
+                        {suggestion.transactions.slice(0, 2).map((tx, idx) => (
+                          <div key={idx} className="text-xs">
+                            <span className="text-muted-foreground">
+                              {new Date(tx.date).toLocaleDateString('es-CO', {
+                                month: 'short',
+                                day: 'numeric',
+                              })}
+                              :
+                            </span>{' '}
+                            {tx.description}
+                          </div>
+                        ))}
+                        {suggestion.transactions.length > 2 && (
+                          <p className="text-muted-foreground text-xs">
+                            +{suggestion.transactions.length - 2} más
+                          </p>
+                        )}
+                      </div>
+                    </div>
+
+                    <div className="mt-3 flex items-center gap-2">
+                      <Badge
+                        variant="secondary"
+                        className={
+                          suggestion.confidence > 0.8
+                            ? 'bg-green-100 text-green-700'
+                            : suggestion.confidence > 0.6
+                              ? 'bg-yellow-100 text-yellow-700'
+                              : 'bg-orange-100 text-orange-700'
+                        }
+                      >
+                        {(suggestion.confidence * 100).toFixed(0)}% confianza
+                      </Badge>
+                    </div>
+                  </div>
+
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => {
+                      const newDismissed = new Set(dismissedSuggestions);
+                      newDismissed.add(suggestion.type);
+                      setDismissedSuggestions(newDismissed);
+                    }}
+                  >
+                    <XCircle className="h-4 w-4" />
+                  </Button>
+                </div>
+              </Alert>
+            ))}
+          </div>
+
+          <div className="mt-4">
+            <p className="text-muted-foreground text-xs">
+              💡 Puedes configurar estas cuentas después desde el panel de cuentas
+            </p>
+          </div>
         </Card>
       )}
 
