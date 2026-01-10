@@ -31,6 +31,13 @@ import {
 } from '@/shared/components/ui/select';
 import { Alert, AlertDescription } from '@/shared/components/ui/alert';
 import { Badge } from '@/shared/components/ui/badge';
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+} from '@/shared/components/ui/dialog';
 import { trpc } from '@/shared/lib/trpc/client';
 import { TransactionPreview } from './transaction-preview';
 import { findDuplicates } from '@/features/import/utils/duplicate-detection';
@@ -96,6 +103,10 @@ export function AccountReview({ importData, selectedAccountId }: AccountReviewPr
   const [categoryConfidences, setCategoryConfidences] = useState<Map<number, number>>(new Map());
   const [showCategories, setShowCategories] = useState(true); // Always show categories
   const [isAutoCategorizing, setIsAutoCategorizing] = useState(false);
+
+  // Time gap detection
+  const [showTimeGapModal, setShowTimeGapModal] = useState(false);
+  const [userAcknowledgedGap, setUserAcknowledgedGap] = useState(false);
 
   // Filter state
   const [searchTerm, setSearchTerm] = useState('');
@@ -196,6 +207,34 @@ export function AccountReview({ importData, selectedAccountId }: AccountReviewPr
 
   // Combine imported and additional transactions
   const allTransactions = [...importData.transactions, ...additionalTransactions];
+
+  // Calculate time gap between last transaction and today
+  const timeGapInfo = useMemo(() => {
+    if (allTransactions.length === 0) return null;
+
+    // Find the most recent transaction date
+    const mostRecentTransaction = allTransactions.reduce((latest, tx) => {
+      return tx.date > latest.date ? tx : latest;
+    });
+
+    const lastTransactionDate = new Date(mostRecentTransaction.date);
+    const today = new Date();
+
+    // Calculate days between last transaction and today
+    const msPerDay = 1000 * 60 * 60 * 24;
+    const daysDifference = Math.floor((today.getTime() - lastTransactionDate.getTime()) / msPerDay);
+
+    // Only show warning if gap is > 1 day
+    if (daysDifference > 1) {
+      return {
+        daysMissing: daysDifference,
+        lastTransactionDate: lastTransactionDate,
+        today: today,
+      };
+    }
+
+    return null;
+  }, [allTransactions]);
 
   // Filter transactions
   const filteredTransactions = useMemo(() => {
@@ -306,6 +345,12 @@ export function AccountReview({ importData, selectedAccountId }: AccountReviewPr
   };
 
   const handleConfirm = async () => {
+    // Check for time gap before confirming (only for new accounts)
+    if (isNewAccount && timeGapInfo && !userAcknowledgedGap) {
+      setShowTimeGapModal(true);
+      return;
+    }
+
     // Check for balance mismatch before confirming (only for new accounts)
     if (isNewAccount && balanceMismatch && !reconciliationMethod) {
       setShowReconciliationModal(true);
@@ -838,6 +883,134 @@ export function AccountReview({ importData, selectedAccountId }: AccountReviewPr
         onClose={() => setShowManualForm(false)}
         onAdd={handleAddManualTransaction}
       />
+
+      {/* Time Gap Warning Modal */}
+      {timeGapInfo && (
+        <Dialog open={showTimeGapModal} onOpenChange={setShowTimeGapModal}>
+          <DialogContent className="max-w-2xl">
+            <DialogHeader>
+              <DialogTitle className="flex items-center gap-2">
+                <AlertTriangle className="h-5 w-5 text-orange-500" />
+                Hay transacciones faltantes
+              </DialogTitle>
+              <DialogDescription>
+                El estado de cuenta que subiste está desactualizado
+              </DialogDescription>
+            </DialogHeader>
+
+            <div className="space-y-4">
+              <Alert className="border-orange-200 bg-orange-50 dark:bg-orange-950">
+                <AlertDescription className="text-sm">
+                  <div className="space-y-2">
+                    <p className="font-semibold">
+                      📅 Tu estado de cuenta termina el{' '}
+                      {timeGapInfo.lastTransactionDate.toLocaleDateString('es-CO', {
+                        day: 'numeric',
+                        month: 'long',
+                        year: 'numeric',
+                      })}
+                    </p>
+                    <p>
+                      Pero hoy es{' '}
+                      {timeGapInfo.today.toLocaleDateString('es-CO', {
+                        day: 'numeric',
+                        month: 'long',
+                        year: 'numeric',
+                      })}
+                    </p>
+                    <p className="text-orange-700">
+                      <strong>Faltan {timeGapInfo.daysMissing} días de movimientos</strong> que no
+                      están registrados en el documento.
+                    </p>
+                  </div>
+                </AlertDescription>
+              </Alert>
+
+              <div className="space-y-3">
+                <p className="text-sm font-medium">¿Qué deseas hacer?</p>
+
+                <div className="space-y-2">
+                  {/* Option 1: Add missing transactions */}
+                  <Button
+                    variant="outline"
+                    className="h-auto w-full justify-start p-4 text-left"
+                    onClick={() => {
+                      setShowTimeGapModal(false);
+                      setShowManualForm(true);
+                    }}
+                  >
+                    <div className="flex-1">
+                      <div className="font-semibold">Agregar transacciones manualmente</div>
+                      <p className="text-muted-foreground text-sm">
+                        Agrega los movimientos del{' '}
+                        {new Date(
+                          timeGapInfo.lastTransactionDate.getTime() + 86400000,
+                        ).toLocaleDateString('es-CO', {
+                          day: 'numeric',
+                          month: 'long',
+                        })}{' '}
+                        al{' '}
+                        {timeGapInfo.today.toLocaleDateString('es-CO', {
+                          day: 'numeric',
+                          month: 'long',
+                        })}
+                      </p>
+                    </div>
+                  </Button>
+
+                  {/* Option 2: Confirm no movements */}
+                  <Button
+                    variant="outline"
+                    className="h-auto w-full justify-start p-4 text-left"
+                    onClick={() => {
+                      setUserAcknowledgedGap(true);
+                      setShowTimeGapModal(false);
+                      // Continue with confirmation
+                      handleConfirm();
+                    }}
+                  >
+                    <div className="flex-1">
+                      <div className="font-semibold">
+                        Confirmar que no hubo movimientos en este período
+                      </div>
+                      <p className="text-muted-foreground text-sm">
+                        No tuve ningún ingreso ni gasto en estos {timeGapInfo.daysMissing} días
+                      </p>
+                    </div>
+                  </Button>
+
+                  {/* Option 3: Continue anyway */}
+                  <Button
+                    variant="ghost"
+                    className="h-auto w-full justify-start p-4 text-left"
+                    onClick={() => {
+                      setUserAcknowledgedGap(true);
+                      setShowTimeGapModal(false);
+                      // Continue with confirmation
+                      handleConfirm();
+                    }}
+                  >
+                    <div className="flex-1">
+                      <div className="font-semibold">Continuar de todos modos</div>
+                      <p className="text-muted-foreground text-sm">
+                        Sé que faltan transacciones, las agregaré después
+                      </p>
+                    </div>
+                  </Button>
+                </div>
+              </div>
+
+              <Alert>
+                <AlertDescription className="text-xs">
+                  💡 <strong>Recomendación:</strong> Para tener un registro completo y preciso,
+                  descarga el estado de cuenta más reciente de tu banco o agrega manualmente las
+                  transacciones faltantes.
+                </AlertDescription>
+              </Alert>
+            </div>
+          </DialogContent>
+        </Dialog>
+      )}
     </div>
   );
 }
