@@ -5,6 +5,10 @@
 import { z } from 'zod';
 import { router, protectedProcedure } from '@/shared/lib/trpc/init';
 import { parseBankCSV } from '@/shared/lib/bank-parser';
+import { parseBankPDF } from '@/features/import/utils/pdf-ocr';
+import { categorizeTransactions } from '@/features/import/utils/ai-categorization';
+import { findDuplicates } from '@/features/import/utils/duplicate-detection';
+import { suggestMissingTransactions } from '@/features/import/utils/ai-reconciliation';
 
 export const importRouter = router({
   /**
@@ -68,40 +72,41 @@ export const importRouter = router({
   /**
    * Parse PDF file with OCR
    * Uses OpenAI Vision API
+   * Note: Expects PNG image data (PDF to PNG conversion happens on client side)
+   * Password handling for protected PDFs is done client-side
    */
   parsePDF: protectedProcedure
     .input(
       z.object({
         fileName: z.string(),
-        fileContent: z.string(), // base64 encoded
+        fileContent: z.string(), // base64 encoded PNG image
       }),
     )
     .mutation(async ({ ctx, input }) => {
       try {
-        // TODO: Import and use parseBankPDF when implemented
-        // const result = await parseBankPDF(input.fileContent);
+        // Parse PNG image with OpenAI Vision
+        // Note: PDF to PNG conversion and password handling done client-side
+        const result = await parseBankPDF(input.fileContent);
 
-        // Placeholder for now
-        throw new Error('PDF parsing not yet implemented');
+        // Create import record
+        const importRecord = await ctx.db.dataImport.create({
+          data: {
+            userId: ctx.session.user.id,
+            fileName: input.fileName,
+            fileType: 'PDF',
+            status: 'COMPLETED',
+            detectedBank: result.account.bankName,
+            reportedBalance: result.account.reportedBalance,
+            transactionsFound: result.transactions.length,
+          },
+        });
 
-        // const importRecord = await ctx.db.dataImport.create({
-        //   data: {
-        //     userId: ctx.session.user.id,
-        //     fileName: input.fileName,
-        //     fileType: 'PDF',
-        //     status: 'COMPLETED',
-        //     detectedBank: result.account.bankName,
-        //     reportedBalance: result.account.reportedBalance,
-        //     transactionsFound: result.transactions.length,
-        //   },
-        // });
-
-        // return {
-        //   importId: importRecord.id,
-        //   account: result.account,
-        //   transactions: result.transactions,
-        //   confidence: result.confidence,
-        // };
+        return {
+          importId: importRecord.id,
+          account: result.account,
+          transactions: result.transactions,
+          confidence: result.confidence,
+        };
       } catch (error) {
         await ctx.db.dataImport.create({
           data: {
@@ -218,5 +223,206 @@ export const importRouter = router({
         transactionsCreated: input.transactions.length,
         finalBalance,
       };
+    }),
+
+  /**
+   * Auto-categorize transactions with AI
+   * Uses GPT-4 to suggest categories
+   */
+  categorize: protectedProcedure
+    .input(
+      z.object({
+        transactions: z.array(
+          z.object({
+            description: z.string(),
+            amount: z.number(),
+            type: z.enum(['EXPENSE', 'INCOME']),
+          }),
+        ),
+      }),
+    )
+    .mutation(async ({ ctx, input }) => {
+      try {
+        // Fetch available categories
+        const categories = await ctx.db.category.findMany({
+          where: {
+            OR: [{ userId: null }, { userId: ctx.session.user.id }],
+          },
+          select: {
+            id: true,
+            key: true,
+            name: true,
+            type: true,
+          },
+        });
+
+        // Call AI categorization
+        const results = await categorizeTransactions(
+          input.transactions,
+          categories.map((cat) => ({
+            key: cat.key,
+            name: cat.name,
+            type: cat.type as 'EXPENSE' | 'INCOME',
+          })),
+        );
+
+        // Map categoryKey to categoryId
+        return results.map((result) => {
+          const category = categories.find((cat) => cat.key === result.categoryKey);
+          return {
+            index: result.index,
+            categoryId: category?.id,
+            categoryKey: result.categoryKey,
+            confidence: result.confidence,
+          };
+        });
+      } catch (error) {
+        console.error('Categorization error:', error);
+        throw error;
+      }
+    }),
+
+  /**
+   * Append transactions to existing account (re-import)
+   * Detects and skips duplicates
+   */
+  appendToAccount: protectedProcedure
+    .input(
+      z.object({
+        accountId: z.string(),
+        importId: z.string(),
+        transactions: z.array(
+          z.object({
+            date: z.date(),
+            amount: z.number(),
+            description: z.string(),
+            rawDescription: z.string(),
+            type: z.enum(['EXPENSE', 'INCOME']),
+            categoryId: z.string().optional(),
+          }),
+        ),
+        skipDuplicates: z.boolean().default(true),
+      }),
+    )
+    .mutation(async ({ ctx, input }) => {
+      // Verify account exists and belongs to user
+      const account = await ctx.db.bankAccount.findFirst({
+        where: {
+          id: input.accountId,
+          userId: ctx.session.user.id,
+        },
+      });
+
+      if (!account) {
+        throw new Error('Cuenta no encontrada');
+      }
+
+      // Fetch existing transactions for duplicate detection
+      const existingTransactions = await ctx.db.transaction.findMany({
+        where: { accountId: input.accountId },
+        select: { date: true, amount: true, description: true },
+      });
+
+      // Detect duplicates
+      const { duplicates } = findDuplicates(
+        input.transactions.map((tx) => ({
+          date: tx.date,
+          amount: tx.amount,
+          description: tx.description,
+        })),
+        existingTransactions,
+      );
+
+      // Filter transactions to import
+      const transactionsToImport = input.skipDuplicates
+        ? input.transactions.filter((tx) => {
+            const isDupe = duplicates.some(
+              (dup) =>
+                dup.date.getTime() === tx.date.getTime() &&
+                dup.amount === tx.amount &&
+                dup.description === tx.description,
+            );
+            return !isDupe;
+          })
+        : input.transactions;
+
+      if (transactionsToImport.length > 0) {
+        // Bulk insert new transactions
+        await ctx.db.transaction.createMany({
+          data: transactionsToImport.map((tx) => ({
+            userId: ctx.session.user.id,
+            accountId: input.accountId,
+            importId: input.importId,
+            amount: tx.amount,
+            description: tx.description,
+            rawDescription: tx.rawDescription,
+            date: tx.date,
+            type: tx.type,
+            categoryId: tx.categoryId,
+          })),
+        });
+
+        // Update account balance
+        const totalAmount = transactionsToImport.reduce((sum, tx) => sum + tx.amount, 0);
+        await ctx.db.bankAccount.update({
+          where: { id: input.accountId },
+          data: {
+            currentBalance: { increment: totalAmount },
+            lastImportDate: new Date(),
+          },
+        });
+      }
+
+      // Update import record
+      await ctx.db.dataImport.update({
+        where: { id: input.importId },
+        data: {
+          accountId: input.accountId,
+        },
+      });
+
+      return {
+        transactionsAdded: transactionsToImport.length,
+        duplicatesSkipped: duplicates.length,
+        totalProcessed: input.transactions.length,
+      };
+    }),
+
+  /**
+   * Suggest missing transactions using AI
+   * Helps reconcile balance discrepancies
+   */
+  suggestMissingTransactions: protectedProcedure
+    .input(
+      z.object({
+        importId: z.string(),
+        reportedBalance: z.number(),
+        calculatedBalance: z.number(),
+        transactions: z.array(
+          z.object({
+            description: z.string(),
+            amount: z.number(),
+            type: z.enum(['EXPENSE', 'INCOME']),
+            date: z.date().optional(),
+          }),
+        ),
+      }),
+    )
+    .mutation(async ({ input }) => {
+      try {
+        const suggestions = await suggestMissingTransactions({
+          reportedBalance: input.reportedBalance,
+          calculatedBalance: input.calculatedBalance,
+          transactions: input.transactions,
+        });
+
+        return {
+          suggestions,
+          count: suggestions.length,
+        };
+      } catch (error) {
+        console.error('Error suggesting missing transactions:', error);
+        throw error;
+      }
     }),
 });

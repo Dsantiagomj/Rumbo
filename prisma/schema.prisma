@@ -14,6 +14,7 @@ model User {
   name          String
   preferredName String    // How the user wants to be called by the AI
   dateOfBirth   DateTime? // Date of birth (to calculate age)
+  identification String?  // Cedula/DNI - used as default password for bank PDFs
   role          String    @default("USER") // USER, ADMIN
   image         String?
   emailVerified DateTime?

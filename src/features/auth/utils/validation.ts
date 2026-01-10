@@ -26,6 +26,12 @@ const registerBaseSchema = z.object({
       (date) => date <= subYears(new Date(), 13),
       'Debes tener al menos 13 años para usar Rumbo',
     ),
+  identification: z
+    .string()
+    .regex(/^\d+$/, 'La identificación debe contener solo números')
+    .min(6, 'La identificación debe tener al menos 6 dígitos')
+    .max(15, 'La identificación es muy larga')
+    .optional(),
 });
 
 // Backend register schema (for API)

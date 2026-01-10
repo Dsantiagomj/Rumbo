@@ -17,9 +17,9 @@ export function QuickActions() {
 
         <QuickActionCard
           icon={Plus}
-          label="Agregar transacción"
+          label="Importar estado de cuenta"
+          onClick={() => (window.location.href = '/import')}
           variant="default"
-          className="cursor-not-allowed opacity-50"
         />
 
         <QuickActionCard

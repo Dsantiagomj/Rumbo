@@ -62,6 +62,7 @@ export function RegisterForm() {
       name: data.name,
       preferredName: data.preferredName,
       dateOfBirth: data.dateOfBirth,
+      identification: data.identification,
     });
   };
 
@@ -186,6 +187,30 @@ export function RegisterForm() {
                 </Popover>
               </div>
               <FormDescription>Usamos esto para personalizar tu experiencia</FormDescription>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+
+        {/* Identification */}
+        <FormField
+          control={form.control}
+          name="identification"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>Cédula de Ciudadanía (opcional)</FormLabel>
+              <FormControl>
+                <Input
+                  type="text"
+                  placeholder="1140890261"
+                  {...field}
+                  disabled={isLoading}
+                  maxLength={15}
+                />
+              </FormControl>
+              <FormDescription>
+                Facilitará la importación de PDFs bancarios (generalmente protegidos con tu cédula)
+              </FormDescription>
               <FormMessage />
             </FormItem>
           )}

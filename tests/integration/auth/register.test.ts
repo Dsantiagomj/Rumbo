@@ -46,10 +46,12 @@ describe('Auth Router - Register', () => {
       password: mockHashedPassword,
       image: null,
       dateOfBirth: new Date('1996-12-19'),
+      identification: null,
+      emailVerified: null,
       updatedAt: new Date(),
     });
 
-    const caller = appRouter.createCaller({ session: null });
+    const caller = appRouter.createCaller({ session: null, db });
     const result = await caller.auth.register({
       email: 'test@example.com',
       password: 'SecurePass123!',
@@ -87,13 +89,15 @@ describe('Auth Router - Register', () => {
       timezone: 'America/Bogota',
       image: null,
       dateOfBirth: new Date(),
+      identification: null,
+      emailVerified: null,
       createdAt: new Date(),
       updatedAt: new Date(),
     };
 
     vi.mocked(db.user.findUnique).mockResolvedValue(existingUser);
 
-    const caller = appRouter.createCaller({ session: null });
+    const caller = appRouter.createCaller({ session: null, db });
 
     await expect(() =>
       caller.auth.register({
@@ -112,7 +116,7 @@ describe('Auth Router - Register', () => {
   });
 
   it('validates required fields', async () => {
-    const caller = appRouter.createCaller({ session: null });
+    const caller = appRouter.createCaller({ session: null, db });
 
     // Missing email
     await expect(() =>
@@ -160,7 +164,7 @@ describe('Auth Router - Register', () => {
   });
 
   it('validates email format', async () => {
-    const caller = appRouter.createCaller({ session: null });
+    const caller = appRouter.createCaller({ session: null, db });
 
     await expect(() =>
       caller.auth.register({
@@ -174,7 +178,7 @@ describe('Auth Router - Register', () => {
   });
 
   it('validates password requirements', async () => {
-    const caller = appRouter.createCaller({ session: null });
+    const caller = appRouter.createCaller({ session: null, db });
 
     // Password too short
     await expect(() =>
@@ -222,7 +226,7 @@ describe('Auth Router - Register', () => {
   });
 
   it('validates age requirement (minimum 13 years)', async () => {
-    const caller = appRouter.createCaller({ session: null });
+    const caller = appRouter.createCaller({ session: null, db });
     const tooYoung = new Date();
     tooYoung.setFullYear(tooYoung.getFullYear() - 12); // 12 years old
 
@@ -238,7 +242,7 @@ describe('Auth Router - Register', () => {
   });
 
   it('rejects future dates of birth', async () => {
-    const caller = appRouter.createCaller({ session: null });
+    const caller = appRouter.createCaller({ session: null, db });
     const futureDate = new Date();
     futureDate.setFullYear(futureDate.getFullYear() + 1);
 

@@ -34,6 +34,7 @@ export const authRouter = router({
         name: input.name,
         preferredName: input.preferredName,
         dateOfBirth: input.dateOfBirth,
+        identification: input.identification,
         role: 'USER',
         // Default preferences from RULEBOOK
         currency: 'COP',
@@ -74,6 +75,7 @@ export const authRouter = router({
         name: true,
         preferredName: true,
         dateOfBirth: true,
+        identification: true,
         role: true,
         image: true,
         currency: true,

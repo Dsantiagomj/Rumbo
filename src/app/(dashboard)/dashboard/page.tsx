@@ -3,6 +3,7 @@ import { redirect } from 'next/navigation';
 
 import { auth } from '@/shared/lib/auth';
 import { QuickActions } from './_components/quick-actions';
+import { AccountsList } from '@/features/accounts/components/accounts-list';
 
 export const metadata: Metadata = {
   title: 'Dashboard | Rumbo',
@@ -30,24 +31,8 @@ export default async function DashboardPage() {
         {/* Quick Actions */}
         <QuickActions />
 
-        {/* Info Card */}
-        <div className="bg-muted/50 rounded-lg border p-6">
-          <h3 className="mb-2 text-lg font-semibold">🎉 ¡Tu cuenta está configurada!</h3>
-          <p className="text-muted-foreground text-sm">
-            Ya podés empezar a usar Rumbo. Próximamente vas a poder importar tus transacciones,
-            chatear con la AI y mucho más.
-          </p>
-          <div className="mt-4 text-sm">
-            <p>
-              <strong>Tu perfil:</strong>
-            </p>
-            <ul className="text-muted-foreground mt-2 list-inside list-disc space-y-1">
-              <li>Nombre: {user.name}</li>
-              <li>Email: {user.email}</li>
-              <li>Rol: {user.role}</li>
-            </ul>
-          </div>
-        </div>
+        {/* Bank Accounts */}
+        <AccountsList />
       </div>
     </div>
   );

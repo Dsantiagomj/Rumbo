@@ -1,6 +1,7 @@
 import { describe, it, expect, beforeEach, vi } from 'vitest';
 import { appRouter } from '@/shared/lib/trpc/root';
 import { db } from '@/shared/lib/db';
+import { createMockUser } from '../../helpers/mock-user';
 
 // Mock the database
 vi.mock('@/shared/lib/db', () => ({
@@ -18,31 +19,29 @@ describe('Auth Router - Profile Management', () => {
   });
 
   const mockSession = {
-    user: { id: 'user-123' },
+    user: {
+      id: 'user-123',
+      email: 'test@example.com',
+      name: 'Test User',
+      preferredName: 'Test',
+      role: 'USER',
+    },
     expires: new Date(Date.now() + 86400000).toISOString(),
   };
 
-  const mockUser = {
+  const mockUser = createMockUser({
     id: 'user-123',
     email: 'test@example.com',
     name: 'Test User',
     preferredName: 'Test',
-    role: 'USER',
-    currency: 'COP',
-    language: 'es-CO',
-    dateFormat: 'DD/MM/YYYY',
-    timezone: 'America/Bogota',
-    image: null,
     dateOfBirth: new Date('1996-12-19'),
-    createdAt: new Date(),
-    updatedAt: new Date(),
-  };
+  });
 
   describe('getProfile', () => {
     it('successfully fetches user profile', async () => {
       vi.mocked(db.user.findUnique).mockResolvedValue(mockUser);
 
-      const caller = appRouter.createCaller({ session: mockSession });
+      const caller = appRouter.createCaller({ session: mockSession, db });
       const result = await caller.auth.getProfile();
 
       expect(result).toBeDefined();
@@ -76,13 +75,13 @@ describe('Auth Router - Profile Management', () => {
     it('throws error when user not found', async () => {
       vi.mocked(db.user.findUnique).mockResolvedValue(null);
 
-      const caller = appRouter.createCaller({ session: mockSession });
+      const caller = appRouter.createCaller({ session: mockSession, db });
 
       await expect(() => caller.auth.getProfile()).rejects.toThrow('Usuario no encontrado');
     });
 
     it('throws error when not authenticated', async () => {
-      const caller = appRouter.createCaller({ session: null });
+      const caller = appRouter.createCaller({ session: null, db });
 
       await expect(() => caller.auth.getProfile()).rejects.toThrow(
         'Debes iniciar sesión para acceder a este recurso',
@@ -106,7 +105,7 @@ describe('Auth Router - Profile Management', () => {
       vi.mocked(db.user.findUnique).mockResolvedValue(null); // No email conflict
       vi.mocked(db.user.update).mockResolvedValue(updatedUser);
 
-      const caller = appRouter.createCaller({ session: mockSession });
+      const caller = appRouter.createCaller({ session: mockSession, db });
       const result = await caller.auth.updateProfile({
         name: 'Updated Name',
         preferredName: 'UpdatedPreferred',
@@ -149,7 +148,7 @@ describe('Auth Router - Profile Management', () => {
 
       vi.mocked(db.user.update).mockResolvedValue(updatedUser);
 
-      const caller = appRouter.createCaller({ session: mockSession });
+      const caller = appRouter.createCaller({ session: mockSession, db });
       const result = await caller.auth.updateProfile({
         name: 'New Name Only',
       });
@@ -165,14 +164,14 @@ describe('Auth Router - Profile Management', () => {
     });
 
     it('rejects update with duplicate email', async () => {
-      const existingUser = {
+      const existingUser = createMockUser({
         id: 'another-user',
         email: 'existing@example.com',
-      };
+      });
 
       vi.mocked(db.user.findUnique).mockResolvedValue(existingUser);
 
-      const caller = appRouter.createCaller({ session: mockSession });
+      const caller = appRouter.createCaller({ session: mockSession, db });
 
       await expect(() =>
         caller.auth.updateProfile({
@@ -184,7 +183,7 @@ describe('Auth Router - Profile Management', () => {
     });
 
     it('validates email format', async () => {
-      const caller = appRouter.createCaller({ session: mockSession });
+      const caller = appRouter.createCaller({ session: mockSession, db });
 
       await expect(() =>
         caller.auth.updateProfile({
@@ -194,7 +193,7 @@ describe('Auth Router - Profile Management', () => {
     });
 
     it('validates currency enum', async () => {
-      const caller = appRouter.createCaller({ session: mockSession });
+      const caller = appRouter.createCaller({ session: mockSession, db });
 
       await expect(() =>
         caller.auth.updateProfile({
@@ -205,7 +204,7 @@ describe('Auth Router - Profile Management', () => {
     });
 
     it('validates language enum', async () => {
-      const caller = appRouter.createCaller({ session: mockSession });
+      const caller = appRouter.createCaller({ session: mockSession, db });
 
       await expect(() =>
         caller.auth.updateProfile({
@@ -216,7 +215,7 @@ describe('Auth Router - Profile Management', () => {
     });
 
     it('validates date format enum', async () => {
-      const caller = appRouter.createCaller({ session: mockSession });
+      const caller = appRouter.createCaller({ session: mockSession, db });
 
       await expect(() =>
         caller.auth.updateProfile({
@@ -227,7 +226,7 @@ describe('Auth Router - Profile Management', () => {
     });
 
     it('validates name minimum length', async () => {
-      const caller = appRouter.createCaller({ session: mockSession });
+      const caller = appRouter.createCaller({ session: mockSession, db });
 
       await expect(() =>
         caller.auth.updateProfile({
@@ -237,7 +236,7 @@ describe('Auth Router - Profile Management', () => {
     });
 
     it('validates preferred name minimum length', async () => {
-      const caller = appRouter.createCaller({ session: mockSession });
+      const caller = appRouter.createCaller({ session: mockSession, db });
 
       await expect(() =>
         caller.auth.updateProfile({
@@ -247,7 +246,7 @@ describe('Auth Router - Profile Management', () => {
     });
 
     it('throws error when not authenticated', async () => {
-      const caller = appRouter.createCaller({ session: null });
+      const caller = appRouter.createCaller({ session: null, db });
 
       await expect(() =>
         caller.auth.updateProfile({
