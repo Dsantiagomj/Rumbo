@@ -56,14 +56,19 @@ export const accountsRouter = router({
         accountType: z.enum(['SAVINGS', 'CHECKING', 'CREDIT_CARD']),
         accountNumber: z.string().optional(),
         initialBalance: z.number(),
+        currentBalance: z.number(),
       }),
     )
     .mutation(async ({ ctx, input }) => {
       return await ctx.db.bankAccount.create({
         data: {
           userId: ctx.session.user.id,
-          ...input,
-          currentBalance: input.initialBalance,
+          name: input.name,
+          bankName: input.bankName,
+          accountType: input.accountType,
+          accountNumber: input.accountNumber,
+          initialBalance: input.initialBalance,
+          currentBalance: input.currentBalance,
           importSource: 'MANUAL',
         },
       });

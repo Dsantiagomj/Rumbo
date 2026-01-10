@@ -17,6 +17,7 @@ import {
   Loader2,
   Search,
   X,
+  ArrowUpDown,
 } from 'lucide-react';
 import { Card } from '@/shared/components/ui/card';
 import { Button } from '@/shared/components/ui/button';
@@ -116,6 +117,7 @@ export function AccountReview({ importData, selectedAccountId }: AccountReviewPr
   const [searchTerm, setSearchTerm] = useState('');
   const [amountFilter, setAmountFilter] = useState('');
   const [typeFilter, setTypeFilter] = useState<'ALL' | 'INCOME' | 'EXPENSE'>('ALL');
+  const [sortOrder, setSortOrder] = useState<'DESC' | 'ASC'>('DESC'); // DESC = newest first
 
   // Account suggestions state
   const [dismissedSuggestions, setDismissedSuggestions] = useState<Set<string>>(new Set());
@@ -244,9 +246,9 @@ export function AccountReview({ importData, selectedAccountId }: AccountReviewPr
     return null;
   }, [allTransactions]);
 
-  // Filter transactions (optimized with useMemo to prevent re-renders)
+  // Filter and sort transactions (optimized with useMemo to prevent re-renders)
   const filteredTransactions = useMemo(() => {
-    return allTransactions.filter((tx) => {
+    const filtered = allTransactions.filter((tx) => {
       // Search filter (by description)
       const matchesSearch =
         searchTerm === '' || tx.description.toLowerCase().includes(searchTerm.toLowerCase());
@@ -264,7 +266,14 @@ export function AccountReview({ importData, selectedAccountId }: AccountReviewPr
 
       return matchesSearch && matchesAmount && matchesType;
     });
-  }, [allTransactions, searchTerm, amountFilter, typeFilter]);
+
+    // Sort by date
+    return filtered.sort((a, b) => {
+      const dateA = new Date(a.date).getTime();
+      const dateB = new Date(b.date).getTime();
+      return sortOrder === 'DESC' ? dateB - dateA : dateA - dateB;
+    });
+  }, [allTransactions, searchTerm, amountFilter, typeFilter, sortOrder]);
 
   // Detect additional accounts based on transaction patterns
   const accountSuggestions = useMemo(() => {
@@ -841,6 +850,17 @@ export function AccountReview({ importData, selectedAccountId }: AccountReviewPr
               </SelectContent>
             </Select>
 
+            {/* Sort Order */}
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => setSortOrder(sortOrder === 'DESC' ? 'ASC' : 'DESC')}
+              className="gap-2"
+            >
+              <ArrowUpDown className="h-4 w-4" />
+              {sortOrder === 'DESC' ? 'Más recientes' : 'Más antiguos'}
+            </Button>
+
             {/* Clear Filters */}
             {(searchTerm || amountFilter || typeFilter !== 'ALL') && (
               <Button
@@ -866,107 +886,127 @@ export function AccountReview({ importData, selectedAccountId }: AccountReviewPr
         )}
 
         <div className="max-h-96 space-y-2 overflow-y-auto">
+          {/* Show skeleton during AI categorization */}
+          {isAutoCategorizing && (
+            <div className="space-y-2">
+              {[...Array(Math.min(5, allTransactions.length))].map((_, i) => (
+                <Card key={`skeleton-${i}`} className="animate-pulse p-4">
+                  <div className="flex items-center gap-4">
+                    <div className="h-10 w-10 rounded-full bg-gray-200"></div>
+                    <div className="flex-1 space-y-2">
+                      <div className="h-4 w-3/4 rounded bg-gray-200"></div>
+                      <div className="h-3 w-1/2 rounded bg-gray-200"></div>
+                    </div>
+                    <div className="h-6 w-24 rounded bg-gray-200"></div>
+                  </div>
+                </Card>
+              ))}
+            </div>
+          )}
+
           {/* Imported Transactions */}
-          {importData.transactions.map((transaction, index) => {
-            // Apply filters
-            const matchesSearch =
-              searchTerm === '' ||
-              transaction.description.toLowerCase().includes(searchTerm.toLowerCase());
-            const matchesType = typeFilter === 'ALL' || transaction.type === typeFilter;
-
-            if (!matchesSearch || !matchesType) return null;
-
-            const isDuplicate =
-              !isNewAccount &&
-              duplicateDetectionResult?.duplicates.some(
-                (dup) =>
-                  dup.date.getTime() === transaction.date.getTime() &&
-                  dup.amount === transaction.amount &&
-                  dup.description === transaction.description,
+          {!isAutoCategorizing &&
+            filteredTransactions.slice(0, importData.transactions.length).map((transaction) => {
+              // Find original index for category mapping
+              const index = importData.transactions.findIndex(
+                (t) =>
+                  t.date === transaction.date &&
+                  t.description === transaction.description &&
+                  t.amount === transaction.amount,
               );
 
-            const categoryId = transactionCategories.get(index);
-            const confidence = categoryConfidences.get(index);
-            const categoryName = categories?.find((c) => c.id === categoryId)?.name;
+              const isDuplicate =
+                !isNewAccount &&
+                duplicateDetectionResult?.duplicates.some(
+                  (dup) =>
+                    dup.date.getTime() === transaction.date.getTime() &&
+                    dup.amount === transaction.amount &&
+                    dup.description === transaction.description,
+                );
 
-            return (
-              <div key={`imported-${index}`} className={isDuplicate ? 'relative' : ''}>
-                <TransactionPreview
-                  transaction={transaction}
-                  categoryId={categoryId}
-                  categoryName={categoryName}
-                  confidence={confidence}
-                  categories={categories?.map((c) => ({
-                    id: c.id,
-                    name: c.name,
-                    key: c.key,
-                    type: c.type as 'EXPENSE' | 'INCOME',
-                  }))}
-                  onCategoryChange={(newCategoryId) => handleCategoryChange(index, newCategoryId)}
-                  editable={showCategories}
-                />
-                {isDuplicate && (
-                  <Badge
-                    variant="secondary"
-                    className="absolute top-2 right-2 bg-orange-100 text-orange-700"
-                  >
-                    Duplicado
-                  </Badge>
-                )}
-              </div>
-            );
-          })}
+              const categoryId = transactionCategories.get(index);
+              const confidence = categoryConfidences.get(index);
+              const categoryName = categories?.find((c) => c.id === categoryId)?.name;
+
+              return (
+                <div key={`imported-${index}`} className={isDuplicate ? 'relative' : ''}>
+                  <TransactionPreview
+                    transaction={transaction}
+                    categoryId={categoryId}
+                    categoryName={categoryName}
+                    confidence={confidence}
+                    categories={categories?.map((c) => ({
+                      id: c.id,
+                      name: c.name,
+                      key: c.key,
+                      type: c.type as 'EXPENSE' | 'INCOME',
+                    }))}
+                    onCategoryChange={(newCategoryId) => handleCategoryChange(index, newCategoryId)}
+                    editable={showCategories}
+                  />
+                  {isDuplicate && (
+                    <Badge
+                      variant="secondary"
+                      className="absolute top-2 right-2 bg-orange-100 text-orange-700"
+                    >
+                      Duplicado
+                    </Badge>
+                  )}
+                </div>
+              );
+            })}
 
           {/* Additional Transactions */}
-          {additionalTransactions.map((transaction, index) => {
-            // Apply filters
-            const matchesSearch =
-              searchTerm === '' ||
-              transaction.description.toLowerCase().includes(searchTerm.toLowerCase());
-            const matchesType = typeFilter === 'ALL' || transaction.type === typeFilter;
+          {!isAutoCategorizing &&
+            filteredTransactions.slice(importData.transactions.length).map((transaction) => {
+              // Find global index for category mapping
+              const localIndex = additionalTransactions.findIndex(
+                (t) =>
+                  t.date === transaction.date &&
+                  t.description === transaction.description &&
+                  t.amount === transaction.amount,
+              );
+              const globalIndex = importData.transactions.length + localIndex;
 
-            if (!matchesSearch || !matchesType) return null;
+              const categoryId = transactionCategories.get(globalIndex);
+              const confidence = categoryConfidences.get(globalIndex);
+              const categoryName = categories?.find((c) => c.id === categoryId)?.name;
 
-            const globalIndex = importData.transactions.length + index;
-            const categoryId = transactionCategories.get(globalIndex);
-            const confidence = categoryConfidences.get(globalIndex);
-            const categoryName = categories?.find((c) => c.id === categoryId)?.name;
-
-            return (
-              <div key={`additional-${index}`} className="relative">
-                <TransactionPreview
-                  transaction={transaction}
-                  categoryId={categoryId}
-                  categoryName={categoryName}
-                  confidence={confidence}
-                  categories={categories?.map((c) => ({
-                    id: c.id,
-                    name: c.name,
-                    key: c.key,
-                    type: c.type as 'EXPENSE' | 'INCOME',
-                  }))}
-                  onCategoryChange={(newCategoryId) =>
-                    handleCategoryChange(globalIndex, newCategoryId)
-                  }
-                  editable={showCategories}
-                />
-                <Badge
-                  variant="secondary"
-                  className="absolute top-2 right-2 bg-purple-100 text-purple-700"
-                >
-                  Agregada
-                </Badge>
-                <Button
-                  variant="ghost"
-                  size="icon-sm"
-                  className="absolute top-2 right-20"
-                  onClick={() => handleRemoveTransaction(index)}
-                >
-                  <XCircle className="h-4 w-4" />
-                </Button>
-              </div>
-            );
-          })}
+              return (
+                <div key={`additional-${localIndex}`} className="relative">
+                  <TransactionPreview
+                    transaction={transaction}
+                    categoryId={categoryId}
+                    categoryName={categoryName}
+                    confidence={confidence}
+                    categories={categories?.map((c) => ({
+                      id: c.id,
+                      name: c.name,
+                      key: c.key,
+                      type: c.type as 'EXPENSE' | 'INCOME',
+                    }))}
+                    onCategoryChange={(newCategoryId) =>
+                      handleCategoryChange(globalIndex, newCategoryId)
+                    }
+                    editable={showCategories}
+                  />
+                  <Badge
+                    variant="secondary"
+                    className="absolute top-2 right-2 bg-purple-100 text-purple-700"
+                  >
+                    Agregada
+                  </Badge>
+                  <Button
+                    variant="ghost"
+                    size="icon-sm"
+                    className="absolute top-2 right-20"
+                    onClick={() => handleRemoveTransaction(localIndex)}
+                  >
+                    <XCircle className="h-4 w-4" />
+                  </Button>
+                </div>
+              );
+            })}
 
           {/* No results */}
           {filteredTransactions.length === 0 && (

@@ -184,15 +184,9 @@ export const importRouter = router({
         })),
       });
 
-      // Calculate final balance
-      const totalAmount = input.transactions.reduce((sum, tx) => sum + tx.amount, 0);
-      const finalBalance = input.accountData.initialBalance + totalAmount;
-
-      // Update account balance
-      await ctx.db.bankAccount.update({
-        where: { id: account.id },
-        data: { currentBalance: finalBalance },
-      });
+      // The user's initialBalance IS their actual/current balance
+      // We don't need to calculate anything - that's the real balance
+      const finalBalance = input.accountData.initialBalance;
 
       // Update import record
       await ctx.db.dataImport.update({

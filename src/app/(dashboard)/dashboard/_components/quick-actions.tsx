@@ -17,8 +17,8 @@ export function QuickActions() {
 
         <QuickActionCard
           icon={Plus}
-          label="Importar estado de cuenta"
-          onClick={() => (window.location.href = '/import')}
+          label="Crear cuenta"
+          onClick={() => (window.location.href = '/crear-cuenta')}
           variant="default"
         />
 
