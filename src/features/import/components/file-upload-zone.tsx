@@ -55,7 +55,7 @@ export function FileUploadZone({ onUploadSuccess }: FileUploadZoneProps) {
       // Convert PDF to PNG images (with password if provided)
       const pngImages = await convertPDFToImages(base64, {
         scale: 2.0,
-        maxPages: 3,
+        maxPages: 10,
         password: password || profile?.identification || undefined,
       });
 

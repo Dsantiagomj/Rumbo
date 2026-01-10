@@ -4,9 +4,11 @@
  * TransactionPreview Component
  * Compact card display for a single transaction
  */
-import { ArrowUpCircle, ArrowDownCircle, Tag, Sparkles } from 'lucide-react';
+import { useState } from 'react';
+import { ArrowUpCircle, ArrowDownCircle, Tag, Sparkles, Plus } from 'lucide-react';
 import { Card } from '@/shared/components/ui/card';
 import { Badge } from '@/shared/components/ui/badge';
+import { Button } from '@/shared/components/ui/button';
 import {
   Select,
   SelectContent,
@@ -14,6 +16,16 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/shared/components/ui/select';
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogDescription,
+} from '@/shared/components/ui/dialog';
+import { Input } from '@/shared/components/ui/input';
+import { Label } from '@/shared/components/ui/label';
+import { trpc } from '@/shared/lib/trpc/client';
 import { cn } from '@/shared/lib/utils';
 
 interface Category {
@@ -46,6 +58,30 @@ export function TransactionPreview({
   onCategoryChange,
   editable = false,
 }: TransactionPreviewProps) {
+  const [showCreateDialog, setShowCreateDialog] = useState(false);
+  const [newCategoryName, setNewCategoryName] = useState('');
+  const [isCreating, setIsCreating] = useState(false);
+
+  const utils = trpc.useUtils();
+  const createCategory = trpc.categories.create.useMutation({
+    onSuccess: async (newCategory) => {
+      // Refresh categories list
+      await utils.categories.getAll.invalidate();
+      // Auto-select the newly created category
+      if (onCategoryChange) {
+        onCategoryChange(newCategory.id);
+      }
+      // Close dialog and reset form
+      setShowCreateDialog(false);
+      setNewCategoryName('');
+      setIsCreating(false);
+    },
+    onError: (error) => {
+      setIsCreating(false);
+      alert(error.message);
+    },
+  });
+
   const isIncome = transaction.type === 'INCOME';
   const formattedDate = new Date(transaction.date).toLocaleDateString('es-CO', {
     year: 'numeric',
@@ -56,6 +92,19 @@ export function TransactionPreview({
   // Filter categories by transaction type
   // For now, show all categories. Future: filter by transaction type
   const filteredCategories = categories;
+
+  const handleCreateCategory = () => {
+    if (!newCategoryName.trim()) {
+      alert('Por favor ingresa un nombre para la categoría');
+      return;
+    }
+
+    setIsCreating(true);
+    createCategory.mutate({
+      name: newCategoryName.trim(),
+      type: transaction.type,
+    });
+  };
 
   return (
     <Card className="hover:bg-muted/50 p-4 transition-colors">
@@ -110,6 +159,20 @@ export function TransactionPreview({
                       {cat.name}
                     </SelectItem>
                   ))}
+                  <div className="border-t p-1">
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      className="w-full justify-start text-sm"
+                      onClick={(e) => {
+                        e.preventDefault();
+                        setShowCreateDialog(true);
+                      }}
+                    >
+                      <Plus className="mr-2 h-4 w-4" />
+                      Nueva Categoría
+                    </Button>
+                  </div>
                 </SelectContent>
               </Select>
 
@@ -154,6 +217,58 @@ export function TransactionPreview({
           ) : null}
         </div>
       )}
+
+      {/* Create Category Dialog */}
+      <Dialog open={showCreateDialog} onOpenChange={setShowCreateDialog}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Crear Nueva Categoría</DialogTitle>
+            <DialogDescription>
+              Crea una categoría personalizada para{' '}
+              {transaction.type === 'INCOME' ? 'ingresos' : 'gastos'}
+            </DialogDescription>
+          </DialogHeader>
+
+          <div className="space-y-4 py-4">
+            <div className="space-y-2">
+              <Label htmlFor="category-name">Nombre de la categoría</Label>
+              <Input
+                id="category-name"
+                placeholder="Ej: Suscripciones, Mascotas, etc."
+                value={newCategoryName}
+                onChange={(e) => setNewCategoryName(e.target.value)}
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter') {
+                    handleCreateCategory();
+                  }
+                }}
+              />
+            </div>
+
+            <div className="text-muted-foreground text-sm">
+              <p>
+                Tipo: <strong>{transaction.type === 'INCOME' ? 'Ingreso' : 'Gasto'}</strong>
+              </p>
+            </div>
+          </div>
+
+          <div className="flex justify-end gap-2">
+            <Button
+              variant="outline"
+              onClick={() => {
+                setShowCreateDialog(false);
+                setNewCategoryName('');
+              }}
+              disabled={isCreating}
+            >
+              Cancelar
+            </Button>
+            <Button onClick={handleCreateCategory} disabled={isCreating || !newCategoryName.trim()}>
+              {isCreating ? 'Creando...' : 'Crear Categoría'}
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
     </Card>
   );
 }
