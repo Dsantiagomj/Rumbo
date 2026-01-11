@@ -9,6 +9,16 @@ import { parseBankPDF } from '@/features/import/utils/pdf-ocr';
 import { categorizeTransactions } from '@/features/import/utils/ai-categorization';
 import { findDuplicates } from '@/features/import/utils/duplicate-detection';
 import { suggestMissingTransactions } from '@/features/import/utils/ai-reconciliation';
+import {
+  filenameSchema,
+  base64Schema,
+  limitedArray,
+  amountSchema,
+  balanceSchema,
+  dateSchema,
+  descriptionSchema,
+  accountNameSchema,
+} from '@/shared/lib/validation';
 
 export const importRouter = router({
   /**
@@ -18,8 +28,8 @@ export const importRouter = router({
   parseCSV: protectedProcedure
     .input(
       z.object({
-        fileName: z.string(),
-        fileContent: z.string(), // base64 encoded
+        fileName: filenameSchema,
+        fileContent: base64Schema, // base64 encoded
       }),
     )
     .mutation(async ({ ctx, input }) => {
@@ -78,10 +88,10 @@ export const importRouter = router({
   parsePDF: protectedProcedure
     .input(
       z.object({
-        fileName: z.string(),
+        fileName: filenameSchema,
         fileContent: z.union([
-          z.string(), // Single page (backwards compatible)
-          z.array(z.string()), // Multiple pages
+          base64Schema, // Single page (backwards compatible)
+          limitedArray(base64Schema, { max: 50 }), // Multiple pages (max 50 pages)
         ]),
       }),
     )
@@ -132,23 +142,24 @@ export const importRouter = router({
   confirmImport: protectedProcedure
     .input(
       z.object({
-        importId: z.string(),
+        importId: z.string().uuid('ID de importación inválido'),
         accountData: z.object({
-          name: z.string(),
-          bankName: z.string(),
+          name: accountNameSchema,
+          bankName: z.string().min(2).max(100),
           accountType: z.enum(['SAVINGS', 'CHECKING', 'CREDIT_CARD']),
-          accountNumber: z.string().optional(),
-          initialBalance: z.number(),
+          accountNumber: z.string().max(50).optional(),
+          initialBalance: balanceSchema,
         }),
-        transactions: z.array(
+        transactions: limitedArray(
           z.object({
-            date: z.date(),
-            amount: z.number(),
-            description: z.string(),
-            rawDescription: z.string(),
+            date: dateSchema,
+            amount: amountSchema,
+            description: descriptionSchema,
+            rawDescription: descriptionSchema,
             type: z.enum(['EXPENSE', 'INCOME']),
-            categoryId: z.string().optional(),
+            categoryId: z.string().uuid().optional(),
           }),
+          { min: 1, max: 10000 }, // Max 10,000 transactions per import
         ),
         reconciliationMethod: z.enum(['OVERRIDE', 'AI_FIND', 'MANUAL']).optional(),
       }),
@@ -230,12 +241,13 @@ export const importRouter = router({
   categorize: protectedProcedure
     .input(
       z.object({
-        transactions: z.array(
+        transactions: limitedArray(
           z.object({
-            description: z.string(),
-            amount: z.number(),
+            description: descriptionSchema,
+            amount: amountSchema,
             type: z.enum(['EXPENSE', 'INCOME']),
           }),
+          { min: 1, max: 1000 }, // Max 1000 transactions for AI categorization
         ),
       }),
     )
