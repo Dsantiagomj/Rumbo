@@ -30,7 +30,6 @@ export function ManualCard({ onClick, variants, prefersReducedMotion }: ManualCa
         bgColor: 'green-100',
       }}
       title="Crear Manualmente"
-      timeEstimate="~2 min"
       description="Ingresa los datos básicos de tu cuenta. Perfecto para efectivo, cuentas sin extracto digital, o si prefieres control total."
       features={[
         { icon: Zap, text: 'Configuración en minutos' },

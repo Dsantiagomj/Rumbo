@@ -37,7 +37,7 @@ export interface OptionCardProps {
 
   // Content
   title: string;
-  timeEstimate: string;
+  timeEstimate?: string;
   description: string;
   features: Feature[];
   bestFor: {
@@ -175,8 +175,10 @@ export function OptionCard({
 
         {/* Header */}
         <div className="mb-4">
-          <h2 className="mb-2 text-xl font-semibold md:text-2xl">{title}</h2>
-          <p className="text-muted-foreground text-sm font-medium">{timeEstimate}</p>
+          <h2 className="text-xl font-semibold md:text-2xl">{title}</h2>
+          {timeEstimate && (
+            <p className="text-muted-foreground mt-2 text-sm font-medium">{timeEstimate}</p>
+          )}
         </div>
 
         {/* Description */}

@@ -30,7 +30,6 @@ export function ImportCard({ onClick, variants, prefersReducedMotion }: ImportCa
         bgColor: 'blue-100',
       }}
       title="Importar Estado de Cuenta"
-      timeEstimate="~5 min"
       description="Sube tu extracto bancario en CSV o PDF. Detectaremos automáticamente tus transacciones y las categorizaremos con IA."
       features={[
         { icon: FileSpreadsheet, text: 'CSV y PDF soportados' },
