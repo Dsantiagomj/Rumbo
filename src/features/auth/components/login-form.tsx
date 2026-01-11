@@ -47,7 +47,6 @@ export function LoginForm() {
         form.setError('root', {
           message: 'Email o contraseña incorrectos',
         });
-        setIsLoading(false);
         return;
       }
 
@@ -60,6 +59,7 @@ export function LoginForm() {
       form.setError('root', {
         message: 'Ocurrió un error al iniciar sesión. Intentá de nuevo.',
       });
+    } finally {
       setIsLoading(false);
     }
   };

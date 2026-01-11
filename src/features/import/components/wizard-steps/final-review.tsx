@@ -310,7 +310,7 @@ export function FinalReviewStep({
             // Find the actual index in allTransactions for category mapping
             const actualIndex = allTransactions.findIndex(
               (t) =>
-                t.date === transaction.date &&
+                t.date.getTime() === transaction.date.getTime() &&
                 t.description === transaction.description &&
                 t.amount === transaction.amount,
             );
