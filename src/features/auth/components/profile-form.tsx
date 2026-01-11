@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState, useRef } from 'react';
+import { useEffect, useState, useRef, useCallback } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 
@@ -45,9 +45,13 @@ export function ProfileForm() {
     },
   });
 
-  // Load profile data into form
+  // Load profile data into form (only when profile data changes)
+  // Note: form.reset is stable and doesn't need to be in dependencies
+  const profileRef = useRef(profile);
   useEffect(() => {
-    if (profile) {
+    // Only update if profile actually changed (not just reference)
+    if (profile && profile !== profileRef.current) {
+      profileRef.current = profile;
       form.reset({
         name: profile.name,
         preferredName: profile.preferredName,
@@ -60,25 +64,33 @@ export function ProfileForm() {
     }
   }, [profile, form]);
 
-  const updateMutation = trpc.auth.updateProfile.useMutation({
-    onSuccess: (data) => {
-      setIsLoading(false);
-      setSuccessMessage(data.message);
+  // Memoize mutation callbacks to prevent re-renders
+  const handleSuccess = useCallback((data: { message: string }) => {
+    setIsLoading(false);
+    setSuccessMessage(data.message);
 
-      // Clear any existing timeout
-      if (successTimeoutRef.current) {
-        clearTimeout(successTimeoutRef.current);
-      }
+    // Clear any existing timeout
+    if (successTimeoutRef.current) {
+      clearTimeout(successTimeoutRef.current);
+    }
 
-      // Set new timeout and store reference for cleanup
-      successTimeoutRef.current = setTimeout(() => setSuccessMessage(''), 3000);
-    },
-    onError: (error) => {
+    // Set new timeout and store reference for cleanup
+    successTimeoutRef.current = setTimeout(() => setSuccessMessage(''), 3000);
+  }, []);
+
+  const handleError = useCallback(
+    (error: { message?: string }) => {
       setIsLoading(false);
       form.setError('root', {
         message: error.message || 'Ocurrió un error al actualizar tu perfil',
       });
     },
+    [form],
+  );
+
+  const updateMutation = trpc.auth.updateProfile.useMutation({
+    onSuccess: handleSuccess,
+    onError: handleError,
   });
 
   // Cleanup timeout on unmount
@@ -90,11 +102,15 @@ export function ProfileForm() {
     };
   }, []);
 
-  const onSubmit = async (data: UpdateProfileInput) => {
-    setIsLoading(true);
-    setSuccessMessage('');
-    updateMutation.mutate(data);
-  };
+  // Memoize submit handler to prevent unnecessary re-renders of form
+  const onSubmit = useCallback(
+    async (data: UpdateProfileInput) => {
+      setIsLoading(true);
+      setSuccessMessage('');
+      updateMutation.mutate(data);
+    },
+    [updateMutation],
+  );
 
   if (isLoadingProfile) {
     return <div>Cargando perfil...</div>;
