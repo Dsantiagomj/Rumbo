@@ -31,7 +31,7 @@ export function ManualCard({ onClick, variants, prefersReducedMotion }: ManualCa
       }}
       title="Crear Manualmente"
       timeEstimate="~2 min"
-      description="Ingresa los datos básicos de tu cuenta. Perfecto para efectivo, cuentas sin extracto digital, o si prefieres control total."
+      description="Ingresa los datos básicos de tu producto financiero. Perfecto para efectivo, productos sin extracto digital, o si prefieres control total."
       features={[
         { icon: Zap, text: 'Configuración en minutos' },
         { icon: Sliders, text: 'Control total de los datos' },
@@ -40,7 +40,7 @@ export function ManualCard({ onClick, variants, prefersReducedMotion }: ManualCa
       ]}
       bestFor={{
         icon: Wallet,
-        text: 'Mejor para: Efectivo, Nequi, o cuentas sin extracto',
+        text: 'Mejor para: Efectivo, billeteras digitales, o productos sin extracto',
       }}
       stats={{
         show: false,

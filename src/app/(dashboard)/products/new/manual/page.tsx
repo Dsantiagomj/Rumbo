@@ -32,9 +32,9 @@ export default function ManualPage() {
             Volver a opciones
           </Button>
 
-          <h1 className="text-2xl font-bold md:text-3xl">Crear Cuenta Manualmente</h1>
+          <h1 className="text-2xl font-bold md:text-3xl">Crear Producto Manualmente</h1>
           <p className="text-muted-foreground mt-2 text-sm md:text-base">
-            Ingresa los detalles de tu cuenta bancaria
+            Ingresa los detalles de tu producto financiero
           </p>
         </div>
 

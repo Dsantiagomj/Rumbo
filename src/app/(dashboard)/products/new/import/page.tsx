@@ -53,12 +53,12 @@ export default function ImportPage() {
           </Button>
 
           <h1 className="text-2xl font-bold md:text-3xl">
-            {importData ? 'Completar Importación' : 'Importar Estado de Cuenta'}
+            {importData ? 'Completar Importación' : 'Importar desde Archivo'}
           </h1>
           <p className="text-muted-foreground mt-2 text-sm md:text-base">
             {importData
-              ? 'Revisa y confirma los datos de tu cuenta'
-              : 'Sube tu estado de cuenta bancario en formato CSV o PDF'}
+              ? 'Revisa y confirma los datos de tu producto financiero'
+              : 'Sube tu extracto o estado de cuenta en formato CSV o PDF'}
           </p>
         </div>
 

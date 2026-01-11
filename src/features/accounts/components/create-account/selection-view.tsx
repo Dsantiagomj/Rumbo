@@ -35,9 +35,9 @@ export function SelectionView() {
           </Button>
         </Link>
 
-        <h1 className="text-2xl font-bold md:text-3xl lg:text-4xl">Crear Cuenta</h1>
+        <h1 className="text-2xl font-bold md:text-3xl lg:text-4xl">Agregar Producto Financiero</h1>
         <p className="text-muted-foreground mt-2 text-sm md:text-base">
-          Elige cómo deseas agregar tu cuenta bancaria
+          Elige cómo deseas agregar tu cuenta, tarjeta de crédito, préstamo o inversión
         </p>
       </motion.div>
 

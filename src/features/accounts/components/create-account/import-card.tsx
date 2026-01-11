@@ -29,18 +29,18 @@ export function ImportCard({ onClick, variants, prefersReducedMotion }: ImportCa
         color: 'brand-primary-600',
         bgColor: 'blue-100',
       }}
-      title="Importar Estado de Cuenta"
+      title="Importar desde Archivo"
       timeEstimate="~5 min"
-      description="Sube tu extracto bancario en CSV o PDF. Detectaremos automáticamente tus transacciones y las categorizaremos con IA."
+      description="Sube tu extracto o estado de cuenta en CSV o PDF. Detectaremos automáticamente tus transacciones y las categorizaremos con IA."
       features={[
         { icon: FileSpreadsheet, text: 'CSV y PDF soportados' },
         { icon: Brain, text: 'Categorización automática con IA' },
         { icon: History, text: 'Importa todo tu historial' },
-        { icon: Zap, text: 'Detección automática de banco' },
+        { icon: Zap, text: 'Detección automática de institución' },
       ]}
       bestFor={{
         icon: FileSpreadsheet,
-        text: 'Mejor para: Cuentas con extracto digital disponible',
+        text: 'Mejor para: Productos con extracto o estado de cuenta digital',
       }}
       stats={{
         show: false,

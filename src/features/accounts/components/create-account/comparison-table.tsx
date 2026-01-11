@@ -13,9 +13,9 @@ export function ComparisonTable() {
         <AlertDescription>
           <p className="text-brand-primary-600 font-medium">Recomendación</p>
           <p className="text-muted-foreground mt-1 text-sm">
-            Si tienes un extracto bancario digital, usa <strong>Importar</strong> para obtener todo
-            tu historial automáticamente. Si solo necesitas registrar efectivo o una cuenta simple,{' '}
-            <strong>Manual</strong> es más rápido.
+            Si tienes un extracto o estado de cuenta digital, usa <strong>Importar</strong> para
+            obtener todo tu historial automáticamente. Si necesitas registrar efectivo o un producto
+            simple, <strong>Manual</strong> es más rápido.
           </p>
         </AlertDescription>
       </Alert>
