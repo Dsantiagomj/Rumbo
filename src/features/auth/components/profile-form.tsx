@@ -5,6 +5,7 @@ import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 
 import { Button } from '@/shared/components/ui/button';
+import { TIME } from '@/shared/constants';
 import {
   Form,
   FormControl,
@@ -75,7 +76,10 @@ export function ProfileForm() {
     }
 
     // Set new timeout and store reference for cleanup
-    successTimeoutRef.current = setTimeout(() => setSuccessMessage(''), 3000);
+    successTimeoutRef.current = setTimeout(
+      () => setSuccessMessage(''),
+      TIME.SUCCESS_MESSAGE_DURATION,
+    );
   }, []);
 
   const handleError = useCallback(

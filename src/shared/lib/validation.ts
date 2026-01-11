@@ -1,4 +1,5 @@
 import { z } from 'zod';
+import { VALIDATION, FINANCIAL, DATE_RANGES, FILE_UPLOAD } from '@/shared/constants';
 
 /**
  * Validation utilities for input sanitization and validation
@@ -62,8 +63,8 @@ export const sanitizedString = (options?: { min?: number; max?: number; message?
  */
 export const filenameSchema = z
   .string()
-  .min(1, 'El nombre del archivo es requerido')
-  .max(255, 'El nombre del archivo es muy largo')
+  .min(VALIDATION.MIN_STRING_LENGTH, 'El nombre del archivo es requerido')
+  .max(VALIDATION.MAX_STRING_LENGTH, 'El nombre del archivo es muy largo')
   .regex(/\.(csv|pdf|png|jpg|jpeg)$/i, 'Formato de archivo no válido')
   .transform(sanitizeFilename);
 
@@ -72,8 +73,8 @@ export const filenameSchema = z
  */
 export const base64Schema = z
   .string()
-  .min(1, 'El contenido del archivo es requerido')
-  .max(10 * 1024 * 1024, 'El archivo es demasiado grande (máx 10MB)') // ~7.5MB actual size
+  .min(VALIDATION.MIN_STRING_LENGTH, 'El contenido del archivo es requerido')
+  .max(FILE_UPLOAD.MAX_FILE_SIZE, 'El archivo es demasiado grande (máx 10MB)')
   .regex(/^[A-Za-z0-9+/]*={0,2}$/, 'Contenido de archivo inválido');
 
 /**
@@ -95,12 +96,11 @@ export const limitedArray = <T extends z.ZodTypeAny>(
 /**
  * Transaction amount validation
  * Allows negative for expenses, positive for income
- * Range: -1 billion to +1 billion
  */
 export const amountSchema = z
   .number()
-  .min(-1_000_000_000, 'Monto demasiado pequeño')
-  .max(1_000_000_000, 'Monto demasiado grande')
+  .min(FINANCIAL.MIN_AMOUNT, 'Monto demasiado pequeño')
+  .max(FINANCIAL.MAX_AMOUNT, 'Monto demasiado grande')
   .refine((val) => !isNaN(val) && isFinite(val), 'Monto inválido');
 
 /**
@@ -108,41 +108,42 @@ export const amountSchema = z
  */
 export const balanceSchema = z
   .number()
-  .min(-1_000_000_000, 'Balance demasiado pequeño')
-  .max(1_000_000_000, 'Balance demasiado grande')
+  .min(FINANCIAL.MIN_BALANCE, 'Balance demasiado pequeño')
+  .max(FINANCIAL.MAX_BALANCE, 'Balance demasiado grande')
   .refine((val) => !isNaN(val) && isFinite(val), 'Balance inválido');
 
 /**
  * Date validation (must be within reasonable range)
- * Min: 100 years ago
- * Max: 10 years in future
  */
 export const dateSchema = z
   .date()
-  .min(new Date(Date.now() - 100 * 365 * 24 * 60 * 60 * 1000), 'Fecha demasiado antigua')
+  .min(
+    new Date(Date.now() - DATE_RANGES.MAX_YEARS_PAST * 365 * DATE_RANGES.DAY_MS),
+    'Fecha demasiado antigua',
+  )
   .max(
-    new Date(Date.now() + 10 * 365 * 24 * 60 * 60 * 1000),
+    new Date(Date.now() + DATE_RANGES.MAX_YEARS_FUTURE * 365 * DATE_RANGES.DAY_MS),
     'Fecha demasiado lejana en el futuro',
   );
 
 /**
  * Transaction description validation
- * Max 500 characters, sanitized for XSS
+ * Sanitized for XSS
  */
 export const descriptionSchema = z
   .string()
-  .min(1, 'La descripción es requerida')
-  .max(500, 'La descripción es muy larga')
+  .min(VALIDATION.MIN_STRING_LENGTH, 'La descripción es requerida')
+  .max(VALIDATION.MAX_DESCRIPTION_LENGTH, 'La descripción es muy larga')
   .transform(sanitizeText);
 
 /**
  * Account name validation
- * Min 2, Max 100 characters, sanitized
+ * Sanitized
  */
 export const accountNameSchema = z
   .string()
-  .min(2, 'El nombre de la cuenta es muy corto')
-  .max(100, 'El nombre de la cuenta es muy largo')
+  .min(VALIDATION.MIN_ACCOUNT_NAME_LENGTH, 'El nombre de la cuenta es muy corto')
+  .max(VALIDATION.MAX_ACCOUNT_NAME_LENGTH, 'El nombre de la cuenta es muy largo')
   .transform(sanitizeString);
 
 // ===== Additional Validators =====
