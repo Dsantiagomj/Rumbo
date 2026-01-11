@@ -4,6 +4,7 @@ import { useEffect } from 'react';
 import { Button } from '@/shared/components/ui/button';
 import { Card } from '@/shared/components/ui/card';
 import { AlertTriangle, RefreshCw, ArrowLeft } from 'lucide-react';
+import { logger } from '@/shared/lib/logger';
 
 export default function SettingsError({
   error,
@@ -13,8 +14,7 @@ export default function SettingsError({
   reset: () => void;
 }) {
   useEffect(() => {
-    console.error('Settings error:', error);
-    // TODO: captureException(error, { tags: { section: 'settings' } });
+    logger.error('Settings error', { section: 'settings', digest: error.digest }, error);
   }, [error]);
 
   return (

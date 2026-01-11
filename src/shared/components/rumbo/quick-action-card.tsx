@@ -14,6 +14,7 @@
  * />
  */
 
+import { memo } from 'react';
 import { type LucideIcon } from 'lucide-react';
 import { cn } from '@/shared/lib/utils';
 
@@ -29,7 +30,7 @@ interface QuickActionCardProps {
  * QuickActionCard Component
  * Touch-friendly action button
  */
-export function QuickActionCard({
+function QuickActionCardComponent({
   icon: Icon,
   label,
   onClick,
@@ -61,3 +62,6 @@ export function QuickActionCard({
     </button>
   );
 }
+
+// Memoize to prevent unnecessary re-renders when used in lists
+export const QuickActionCard = memo(QuickActionCardComponent);

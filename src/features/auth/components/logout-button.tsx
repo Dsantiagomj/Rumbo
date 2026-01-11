@@ -5,6 +5,7 @@ import { signOut } from 'next-auth/react';
 import { LogOut } from 'lucide-react';
 
 import { Button } from '@/shared/components/ui/button';
+import { logger } from '@/shared/lib/logger';
 
 interface LogoutButtonProps {
   variant?: 'default' | 'outline' | 'ghost' | 'destructive';
@@ -28,7 +29,7 @@ export function LogoutButton({
         callbackUrl: '/login',
       });
     } catch (error) {
-      console.error('Logout error:', error);
+      logger.error('Logout error', {}, error as Error);
     } finally {
       setIsLoading(false);
     }

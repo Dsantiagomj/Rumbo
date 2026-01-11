@@ -48,6 +48,7 @@ import {
   detectAdditionalAccounts,
   getAccountTypeLabel,
 } from '@/features/import/utils/account-detection';
+import { logger } from '@/shared/lib/logger';
 
 interface AccountReviewProps {
   importData: {
@@ -203,7 +204,11 @@ export function AccountReview({ importData, selectedAccountId }: AccountReviewPr
           setTransactionCategories(newCategories);
           setCategoryConfidences(newConfidences);
         } catch (error) {
-          console.error('Error auto-categorizing transactions:', error);
+          logger.error(
+            'Error auto-categorizing transactions',
+            { transactionCount: importData.transactions.length },
+            error as Error,
+          );
         } finally {
           setIsAutoCategorizing(false);
         }
@@ -369,7 +374,11 @@ export function AccountReview({ importData, selectedAccountId }: AccountReviewPr
       setCategoryConfidences(newConfidences);
       setShowCategories(true);
     } catch (error) {
-      console.error('Error categorizing transactions:', error);
+      logger.error(
+        'Error categorizing transactions',
+        { transactionCount: allTransactions.length },
+        error as Error,
+      );
     } finally {
       setIsAutoCategorizing(false);
     }

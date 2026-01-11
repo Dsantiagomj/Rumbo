@@ -4,6 +4,7 @@ import { useEffect } from 'react';
 import { Button } from '@/shared/components/ui/button';
 import { Card } from '@/shared/components/ui/card';
 import { AlertTriangle, RefreshCw, ArrowLeft } from 'lucide-react';
+import { logger } from '@/shared/lib/logger';
 
 export default function ProductsError({
   error,
@@ -13,8 +14,7 @@ export default function ProductsError({
   reset: () => void;
 }) {
   useEffect(() => {
-    console.error('Products error:', error);
-    // TODO: captureException(error, { tags: { section: 'products' } });
+    logger.error('Products error', { section: 'products', digest: error.digest }, error);
   }, [error]);
 
   return (

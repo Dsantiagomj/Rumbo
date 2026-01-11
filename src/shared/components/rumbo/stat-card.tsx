@@ -12,6 +12,7 @@
  * />
  */
 
+import { memo } from 'react';
 import { Card } from '@/shared/components/ui/card';
 import { ArrowUp, ArrowDown, type LucideIcon } from 'lucide-react';
 import { formatCurrency, formatNumber, formatPercentage, cn } from '@/shared/lib/utils';
@@ -29,7 +30,7 @@ interface StatCardProps {
  * StatCard Component
  * Compact stat display with optional trend
  */
-export function StatCard({
+function StatCardComponent({
   label,
   value,
   format = 'currency',
@@ -80,3 +81,6 @@ export function StatCard({
     </Card>
   );
 }
+
+// Memoize to prevent unnecessary re-renders when used in dashboard grids
+export const StatCard = memo(StatCardComponent);

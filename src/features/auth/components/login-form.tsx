@@ -17,6 +17,7 @@ import {
 } from '@/shared/components/ui/form';
 import { Input } from '@/shared/components/ui/input';
 import { loginSchema, type LoginInput } from '../utils/validation';
+import { logger } from '@/shared/lib/logger';
 
 export function LoginForm() {
   const searchParams = useSearchParams();
@@ -55,7 +56,7 @@ export function LoginForm() {
         window.location.href = callbackUrl;
       }
     } catch (error) {
-      console.error('Login error:', error);
+      logger.error('Login error', { email: data.email }, error as Error);
       form.setError('root', {
         message: 'Ocurrió un error al iniciar sesión. Intentá de nuevo.',
       });

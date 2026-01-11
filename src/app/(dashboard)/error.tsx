@@ -4,6 +4,7 @@ import { useEffect } from 'react';
 import { Button } from '@/shared/components/ui/button';
 import { Card } from '@/shared/components/ui/card';
 import { AlertTriangle, RefreshCw, Home } from 'lucide-react';
+import { logger } from '@/shared/lib/logger';
 
 export default function DashboardError({
   error,
@@ -13,9 +14,7 @@ export default function DashboardError({
   reset: () => void;
 }) {
   useEffect(() => {
-    // Log error to error reporting service
-    console.error('Dashboard error:', error);
-    // TODO: captureException(error, { tags: { section: 'dashboard' } });
+    logger.error('Dashboard error', { section: 'dashboard', digest: error.digest }, error);
   }, [error]);
 
   return (
