@@ -1,5 +1,6 @@
 'use client';
 
+import { useEffect, useRef } from 'react';
 import { motion } from 'framer-motion';
 import type { LucideIcon } from 'lucide-react';
 import type { Variants } from 'framer-motion';
@@ -71,6 +72,16 @@ export function OptionCard({
 }: OptionCardProps) {
   const Icon = icon.component;
   const BestForIcon = bestFor.icon;
+  const rippleTimeoutRef = useRef<NodeJS.Timeout | undefined>(undefined);
+
+  // Cleanup ripple timeout on unmount
+  useEffect(() => {
+    return () => {
+      if (rippleTimeoutRef.current) {
+        clearTimeout(rippleTimeoutRef.current);
+      }
+    };
+  }, []);
 
   const handleClick = (e: React.MouseEvent<HTMLDivElement>) => {
     // Create ripple effect
@@ -89,7 +100,13 @@ export function OptionCard({
 
     card.appendChild(ripple);
 
-    setTimeout(() => ripple.remove(), 600);
+    // Clear any existing timeout
+    if (rippleTimeoutRef.current) {
+      clearTimeout(rippleTimeoutRef.current);
+    }
+
+    // Store timeout reference for cleanup
+    rippleTimeoutRef.current = setTimeout(() => ripple.remove(), 600);
 
     // Call the onClick handler
     onClick();

@@ -172,6 +172,8 @@ export function AccountReview({ importData, selectedAccountId }: AccountReviewPr
 
   // Auto-categorize transactions on mount
   useEffect(() => {
+    let isMounted = true;
+
     // Only auto-categorize once when categories are first loaded
     async function autoCategorize() {
       if (
@@ -182,7 +184,9 @@ export function AccountReview({ importData, selectedAccountId }: AccountReviewPr
         !isAutoCategorizing
       ) {
         try {
+          if (!isMounted) return;
           setIsAutoCategorizing(true);
+
           const results = await categorizeMutation.mutateAsync({
             transactions: importData.transactions.map((tx) => ({
               description: tx.description,
@@ -190,6 +194,9 @@ export function AccountReview({ importData, selectedAccountId }: AccountReviewPr
               type: tx.type,
             })),
           });
+
+          // Only update state if component is still mounted
+          if (!isMounted) return;
 
           const newCategories = new Map<number, string>();
           const newConfidences = new Map<number, number>();
@@ -204,18 +211,25 @@ export function AccountReview({ importData, selectedAccountId }: AccountReviewPr
           setTransactionCategories(newCategories);
           setCategoryConfidences(newConfidences);
         } catch (error) {
+          if (!isMounted) return;
           logger.error(
             'Error auto-categorizing transactions',
             { transactionCount: importData.transactions.length },
             error as Error,
           );
         } finally {
-          setIsAutoCategorizing(false);
+          if (isMounted) {
+            setIsAutoCategorizing(false);
+          }
         }
       }
     }
 
     autoCategorize();
+
+    return () => {
+      isMounted = false;
+    };
   }, [
     categories,
     importData.transactions,

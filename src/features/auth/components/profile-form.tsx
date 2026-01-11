@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useRef } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 
@@ -28,6 +28,7 @@ import { updateProfileSchema, type UpdateProfileInput } from '../utils/validatio
 export function ProfileForm() {
   const [isLoading, setIsLoading] = useState(false);
   const [successMessage, setSuccessMessage] = useState('');
+  const successTimeoutRef = useRef<NodeJS.Timeout | undefined>(undefined);
 
   const { data: profile, isLoading: isLoadingProfile } = trpc.auth.getProfile.useQuery();
 
@@ -63,7 +64,14 @@ export function ProfileForm() {
     onSuccess: (data) => {
       setIsLoading(false);
       setSuccessMessage(data.message);
-      setTimeout(() => setSuccessMessage(''), 3000);
+
+      // Clear any existing timeout
+      if (successTimeoutRef.current) {
+        clearTimeout(successTimeoutRef.current);
+      }
+
+      // Set new timeout and store reference for cleanup
+      successTimeoutRef.current = setTimeout(() => setSuccessMessage(''), 3000);
     },
     onError: (error) => {
       setIsLoading(false);
@@ -72,6 +80,15 @@ export function ProfileForm() {
       });
     },
   });
+
+  // Cleanup timeout on unmount
+  useEffect(() => {
+    return () => {
+      if (successTimeoutRef.current) {
+        clearTimeout(successTimeoutRef.current);
+      }
+    };
+  }, []);
 
   const onSubmit = async (data: UpdateProfileInput) => {
     setIsLoading(true);
