@@ -96,7 +96,13 @@ export function OptionCard({
     ripple.style.left = `${x}px`;
     ripple.style.top = `${y}px`;
     ripple.classList.add('ripple');
-    ripple.style.background = `var(--${theme.primary})`;
+
+    // Subtle color with low opacity
+    const rippleColor =
+      theme.primary === 'brand-primary-600'
+        ? 'rgba(59, 130, 246, 0.12)' // Blue with 12% opacity
+        : 'rgba(34, 197, 94, 0.12)'; // Green with 12% opacity
+    ripple.style.background = rippleColor;
 
     card.appendChild(ripple);
 
@@ -105,11 +111,13 @@ export function OptionCard({
       clearTimeout(rippleTimeoutRef.current);
     }
 
-    // Store timeout reference for cleanup
+    // Store timeout reference for cleanup (ripple lasts full 600ms)
     rippleTimeoutRef.current = setTimeout(() => ripple.remove(), 600);
 
-    // Call the onClick handler
-    onClick();
+    // Delay navigation to show complete ripple animation (400ms)
+    setTimeout(() => {
+      onClick();
+    }, 400);
   };
 
   const handleKeyDown = (e: React.KeyboardEvent<HTMLDivElement>) => {
