@@ -3,7 +3,7 @@
 import { useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { useRouter, useSearchParams } from 'next/navigation';
+import { useSearchParams } from 'next/navigation';
 import { signIn } from 'next-auth/react';
 
 import { Button } from '@/shared/components/ui/button';
@@ -19,7 +19,6 @@ import { Input } from '@/shared/components/ui/input';
 import { loginSchema, type LoginInput } from '../utils/validation';
 
 export function LoginForm() {
-  const router = useRouter();
   const searchParams = useSearchParams();
   const [isLoading, setIsLoading] = useState(false);
 
@@ -51,8 +50,9 @@ export function LoginForm() {
       }
 
       if (result?.ok) {
-        router.push(callbackUrl);
-        router.refresh();
+        // Use window.location.href for context change (login → dashboard)
+        // This clears auth state and loads fresh dashboard
+        window.location.href = callbackUrl;
       }
     } catch (error) {
       console.error('Login error:', error);

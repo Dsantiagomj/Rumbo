@@ -129,13 +129,17 @@ export function AccountReview({ importData, selectedAccountId }: AccountReviewPr
 
   const confirmImport = trpc.import.confirmImport.useMutation({
     onSuccess: () => {
-      router.push('/dashboard');
+      // Use window.location.href for context change (import flow → dashboard)
+      // This clears import state and refreshes the dashboard
+      window.location.href = '/dashboard';
     },
   });
 
   const appendToAccount = trpc.import.appendToAccount.useMutation({
     onSuccess: () => {
-      router.push('/dashboard');
+      // Use window.location.href for context change (import flow → dashboard)
+      // This clears import state and refreshes the dashboard
+      window.location.href = '/dashboard';
     },
   });
 

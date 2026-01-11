@@ -23,9 +23,15 @@ export function LogoutButton({
 
   const handleLogout = async () => {
     setIsLoading(true);
-    await signOut({
-      callbackUrl: '/login',
-    });
+    try {
+      await signOut({
+        callbackUrl: '/login',
+      });
+    } catch (error) {
+      console.error('Logout error:', error);
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   return (

@@ -3,7 +3,6 @@
 import { useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { useRouter } from 'next/navigation';
 import { CalendarIcon } from 'lucide-react';
 import { format, parse } from 'date-fns';
 
@@ -24,7 +23,6 @@ import { trpc } from '@/shared/lib/trpc/client';
 import { registerSchema, type RegisterInput } from '../utils/validation';
 
 export function RegisterForm() {
-  const router = useRouter();
   const [isLoading, setIsLoading] = useState(false);
   const [dateInputValue, setDateInputValue] = useState('');
   const [calendarOpen, setCalendarOpen] = useState(false);
@@ -42,8 +40,10 @@ export function RegisterForm() {
 
   const registerMutation = trpc.auth.register.useMutation({
     onSuccess: async () => {
-      // Redirect to login page after successful registration
-      router.push('/login');
+      setIsLoading(false);
+      // Use window.location.href for context change (register → login)
+      // This clears registration state and loads fresh login page
+      window.location.href = '/login';
     },
     onError: (error) => {
       setIsLoading(false);
