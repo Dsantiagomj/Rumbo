@@ -174,9 +174,9 @@ export function OptionCard({
         </div>
 
         {/* Header */}
-        <div className="mb-4">
-          <h2 className="mb-2 text-xl font-semibold md:text-2xl">{title}</h2>
-          <p className="text-muted-foreground text-sm font-medium">{timeEstimate}</p>
+        <div className="mb-4 flex flex-wrap items-baseline gap-2">
+          <h2 className="text-xl font-semibold md:text-2xl">{title}</h2>
+          <span className="text-muted-foreground text-sm font-medium">· {timeEstimate}</span>
         </div>
 
         {/* Description */}
