@@ -182,8 +182,17 @@ export function FileUploadZone({ onUploadSuccess }: FileUploadZoneProps) {
           isDragActive && 'border-brand-primary-500 bg-brand-primary-500/5',
           isUploading && 'cursor-not-allowed opacity-50',
         )}
+        role="button"
+        tabIndex={isUploading ? -1 : 0}
+        aria-label="Zona de carga de archivos. Arrastra un archivo CSV o PDF aquí, o presiona Enter para seleccionar"
+        aria-busy={isUploading}
+        aria-disabled={isUploading}
       >
-        <input {...getInputProps()} capture="environment" />
+        <input
+          {...getInputProps()}
+          capture="environment"
+          aria-label="Seleccionar archivo de estado de cuenta"
+        />
 
         <div className="flex flex-col items-center gap-4">
           {isUploading ? (

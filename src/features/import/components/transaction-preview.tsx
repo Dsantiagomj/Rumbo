@@ -115,6 +115,7 @@ function TransactionPreviewComponent({
             'flex h-10 w-10 shrink-0 items-center justify-center rounded-full',
             isIncome ? 'bg-green-100' : 'bg-red-100',
           )}
+          aria-hidden="true"
         >
           {isIncome ? (
             <ArrowUpCircle className="h-5 w-5 text-green-600" />
@@ -150,7 +151,10 @@ function TransactionPreviewComponent({
           {editable && categories && onCategoryChange ? (
             <div className="flex flex-1 items-center gap-2">
               <Select value={categoryId || ''} onValueChange={onCategoryChange}>
-                <SelectTrigger className="h-8 text-sm">
+                <SelectTrigger
+                  className="h-8 text-sm"
+                  aria-label="Seleccionar categoría para la transacción"
+                >
                   <SelectValue placeholder="Seleccionar categoría" />
                 </SelectTrigger>
                 <SelectContent>
@@ -178,7 +182,7 @@ function TransactionPreviewComponent({
 
               {confidence !== undefined && confidence > 0 && (
                 <div className="flex items-center gap-1">
-                  <Sparkles className="h-3 w-3 text-purple-500" />
+                  <Sparkles className="h-3 w-3 text-purple-500" aria-hidden="true" />
                   <Badge
                     variant="secondary"
                     className={cn(
@@ -189,6 +193,7 @@ function TransactionPreviewComponent({
                           ? 'bg-yellow-100 text-yellow-700'
                           : 'bg-orange-100 text-orange-700',
                     )}
+                    aria-label={`Confianza de categorización AI: ${(confidence * 100).toFixed(0)} por ciento`}
                   >
                     {(confidence * 100).toFixed(0)}%
                   </Badge>
