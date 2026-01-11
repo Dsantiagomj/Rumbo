@@ -18,7 +18,7 @@ export function QuickActions() {
         <QuickActionCard
           icon={Plus}
           label="Crear cuenta"
-          onClick={() => (window.location.href = '/crear-cuenta')}
+          onClick={() => (window.location.href = '/products/new')}
           variant="default"
         />
 

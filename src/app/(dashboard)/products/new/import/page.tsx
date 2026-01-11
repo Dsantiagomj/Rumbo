@@ -1,6 +1,6 @@
 /**
- * Importar Estado de Cuenta Page
- * Route: /crear-cuenta/importar
+ * Import Account Statement Page
+ * Route: /products/new/import
  */
 'use client';
 
@@ -30,7 +30,7 @@ interface ImportData {
   confidence: number;
 }
 
-export default function ImportarPage() {
+export default function ImportPage() {
   const router = useRouter();
   const [importData, setImportData] = useState<ImportData | null>(null);
 
@@ -39,11 +39,11 @@ export default function ImportarPage() {
   };
 
   const handleBack = () => {
-    router.push('/crear-cuenta');
+    router.push('/products/new');
   };
 
   return (
-    <PageTransition key={importData ? 'wizard' : 'upload'}>
+    <PageTransition>
       <div className="container mx-auto max-w-4xl px-4 py-8">
         {/* Header */}
         <div className="mb-8">

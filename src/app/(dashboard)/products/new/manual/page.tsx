@@ -1,6 +1,6 @@
 /**
- * Crear Cuenta Manual Page
- * Route: /crear-cuenta/manual
+ * Create Product Manually Page
+ * Route: /products/new/manual
  */
 'use client';
 
@@ -14,7 +14,7 @@ export default function ManualPage() {
   const router = useRouter();
 
   const handleBack = () => {
-    router.push('/crear-cuenta');
+    router.push('/products/new');
   };
 
   const handleManualCreated = () => {

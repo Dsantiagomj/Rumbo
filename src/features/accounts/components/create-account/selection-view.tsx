@@ -17,11 +17,11 @@ export function SelectionView() {
   const activeVariants = prefersReducedMotion ? cardVariantsReduced : cardVariants;
 
   const handleImportClick = () => {
-    router.push('/crear-cuenta/importar');
+    router.push('/products/new/import');
   };
 
   const handleManualClick = () => {
-    router.push('/crear-cuenta/manual');
+    router.push('/products/new/manual');
   };
 
   return (

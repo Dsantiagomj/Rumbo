@@ -47,7 +47,7 @@ export function AccountsList() {
         <p className="text-muted-foreground mb-6 text-sm">
           Importa tu primer estado de cuenta para comenzar a rastrear tus finanzas
         </p>
-        <Link href="/crear-cuenta">
+        <Link href="/products/new">
           <Button>
             <Plus className="mr-2 h-4 w-4" />
             Importar Estado de Cuenta
@@ -62,7 +62,7 @@ export function AccountsList() {
     <div className="space-y-4">
       <div className="flex items-center justify-between">
         <h2 className="text-xl font-semibold">Mis Cuentas</h2>
-        <Link href="/crear-cuenta">
+        <Link href="/products/new">
           <Button variant="outline" size="sm">
             <Plus className="mr-2 h-4 w-4" />
             Agregar cuenta

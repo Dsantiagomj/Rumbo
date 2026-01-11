@@ -32,32 +32,18 @@ export function ComparisonTable() {
               <th className="py-3 text-center">
                 <div className="flex flex-col items-center gap-1">
                   <Upload className="text-brand-primary-600 h-5 w-5" />
-                  <span className="text-xs font-medium">Importar</span>
+                  <span className="text-xs font-medium">Importar (~5 min)</span>
                 </div>
               </th>
               <th className="py-3 text-center">
                 <div className="flex flex-col items-center gap-1">
                   <PenTool className="text-financial-positive h-5 w-5" />
-                  <span className="text-xs font-medium">Manual</span>
+                  <span className="text-xs font-medium">Manual (~2 min)</span>
                 </div>
               </th>
             </tr>
           </thead>
           <tbody>
-            <tr className="border-b">
-              <td className="py-3 text-sm">Tiempo de configuración</td>
-              <td className="text-center text-sm">
-                <div className="flex flex-col items-center">
-                  <span className="font-medium">5 min</span>
-                </div>
-              </td>
-              <td className="text-center text-sm">
-                <div className="flex flex-col items-center">
-                  <span className="font-medium">2 min</span>
-                </div>
-              </td>
-            </tr>
-
             <tr className="border-b">
               <td className="py-3 text-sm">Historial de transacciones</td>
               <td className="text-center text-sm">
