@@ -17,6 +17,7 @@ import { Card } from '@/shared/components/ui/card';
 import { Progress } from '@/shared/components/ui/progress';
 import { CheckCircle2 } from 'lucide-react';
 import { trpc } from '@/shared/lib/trpc/client';
+import { logger } from '@/shared/lib/logger';
 
 // Import step components
 import { AccountSelectionStep } from './wizard-steps/account-selection';
@@ -138,7 +139,11 @@ export function ImportWizard({ importData }: ImportWizardProps) {
         isCategorizing: false,
       }));
     } catch (error) {
-      console.error('Error categorizing transactions:', error);
+      logger.error(
+        'Error categorizing transactions',
+        { transactionCount: importData.transactions.length },
+        error as Error,
+      );
       // Still mark as complete even if categorization fails
       setWizardData((prev) => ({
         ...prev,

@@ -35,6 +35,7 @@ export function CategorizationStep({
   onBack,
 }: CategorizationStepProps) {
   const { data: categories } = trpc.categories.getAll.useQuery();
+  const [localCategories, setLocalCategories] = useState<Map<number, string>>(new Map());
 
   // Get transactions that don't have clear categories OR have no category at all
   const unclearTransactions = useMemo(() => {
@@ -86,9 +87,7 @@ export function CategorizationStep({
     if (hasChanges) {
       setLocalCategories(newCategories);
     }
-  }, [unclearTransactions, categories]);
-
-  const [localCategories, setLocalCategories] = useState<Map<number, string>>(new Map());
+  }, [unclearTransactions, categories, localCategories]);
 
   const handleCategoryChange = (index: number, categoryId: string) => {
     setLocalCategories((prev) => {
